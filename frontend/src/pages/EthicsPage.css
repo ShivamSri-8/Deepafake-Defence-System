@@ -1,0 +1,292 @@
+/* Ethics Page Styles */
+.ethics-page {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Disclaimer Banner */
+.disclaimer-banner {
+    display: flex;
+    gap: var(--space-5);
+    padding: var(--space-6);
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(251, 191, 36, 0.1) 100%);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: var(--radius-xl);
+    margin-bottom: var(--space-10);
+    color: var(--color-warning-400);
+}
+
+.disclaimer-banner h3 {
+    font-size: 1.125rem;
+    margin-bottom: var(--space-2);
+    color: var(--color-warning-400);
+}
+
+.disclaimer-banner p {
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Sections */
+.ethics-section {
+    margin-bottom: var(--space-12);
+}
+
+.ethics-section .section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: var(--space-6);
+}
+
+/* Principles Grid */
+.principles-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-5);
+}
+
+.principle-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    transition: all var(--transition-base);
+}
+
+.principle-card:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-hover);
+    transform: translateY(-4px);
+}
+
+.principle-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(99, 102, 241, 0.15);
+    border-radius: var(--radius-lg);
+    color: var(--color-primary-400);
+    margin-bottom: var(--space-4);
+}
+
+.principle-card h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: var(--space-2);
+}
+
+.principle-card p {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Usage Guidelines */
+.usage-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-6);
+}
+
+.usage-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+}
+
+.usage-card.appropriate {
+    border-color: rgba(34, 197, 94, 0.3);
+}
+
+.usage-card.inappropriate {
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.usage-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.usage-card.appropriate .usage-header {
+    color: var(--color-success-400);
+}
+
+.usage-card.inappropriate .usage-header {
+    color: var(--color-danger-400);
+}
+
+.usage-header h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.usage-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.usage-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+}
+
+.usage-card.appropriate .usage-list li svg {
+    color: var(--color-success-400);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.usage-card.inappropriate .usage-list li svg {
+    color: var(--color-danger-400);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+/* Info Cards */
+.info-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-5);
+}
+
+.info-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    text-align: center;
+}
+
+.info-card svg {
+    color: var(--color-primary-400);
+    margin-bottom: var(--space-4);
+}
+
+.info-card h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: var(--space-3);
+}
+
+.info-card p {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* FAQs */
+.faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.faq-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-xl);
+    padding: var(--space-5);
+}
+
+.faq-question {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    color: var(--color-primary-400);
+    margin-bottom: var(--space-3);
+}
+
+.faq-question h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.faq-answer {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    margin: 0;
+    padding-left: calc(18px + var(--space-3));
+    line-height: 1.6;
+}
+
+/* Resources */
+.resources-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+}
+
+.resource-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-5);
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: all var(--transition-fast);
+}
+
+.resource-link:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--color-primary-500);
+    color: var(--color-primary-400);
+}
+
+.resource-link svg:first-child {
+    color: var(--color-primary-400);
+}
+
+.resource-link span {
+    flex: 1;
+    font-size: 0.9375rem;
+}
+
+.resource-link svg:last-child {
+    color: var(--text-muted);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .principles-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .info-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .disclaimer-banner {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .principles-grid,
+    .usage-grid,
+    .info-cards,
+    .resources-grid {
+        grid-template-columns: 1fr;
+    }
+}

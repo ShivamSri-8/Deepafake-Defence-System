@@ -1,0 +1,6 @@
+# Uploads directory
+This directory contains uploaded media files for deepfake analysis.
+
+Files are organized by date (YYYY-MM-DD subdirectories).
+
+**Note**: This directory should be excluded from version control (see .gitignore).

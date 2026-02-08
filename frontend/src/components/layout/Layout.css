@@ -1,0 +1,34 @@
+/* Layout Styles */
+.layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.layout-main {
+    flex: 1;
+    margin-left: 280px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    transition: margin-left var(--transition-base);
+}
+
+.layout-main.sidebar-collapsed {
+    margin-left: 80px;
+}
+
+.layout-content {
+    flex: 1;
+    padding: var(--space-6);
+    overflow-y: auto;
+}
+
+@media (max-width: 1024px) {
+    .layout-main {
+        margin-left: 0;
+    }
+
+    .layout-main.sidebar-collapsed {
+        margin-left: 0;
+    }
+}

@@ -1,0 +1,26 @@
+# Minimal requirements for initial setup
+# Use this for quick setup without GPU/ML dependencies
+
+# Core Framework
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-multipart==0.0.6
+pydantic==2.5.3
+pydantic-settings==2.1.0
+
+# Computer Vision (lightweight)
+opencv-python-headless==4.9.0.80
+Pillow==10.2.0
+
+# Scientific Computing
+numpy==1.26.3
+scikit-image==0.22.0
+
+# Utilities
+aiofiles==23.2.1
+httpx==0.26.0
+loguru==0.7.2
+psutil==5.9.8
+
+# Note: For full ML capabilities, install from requirements.txt
+# which includes tensorflow, torch, mediapipe, lime, shap, etc.
