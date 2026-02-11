@@ -1,110 +1,141 @@
-/* Ethics Page Styles */
+/* ═══════════════════════════════════════
+   Ethics Page — Policy & Awareness
+   ═══════════════════════════════════════ */
 .ethics-page {
-    max-width: 1200px;
+    max-width: 1000px;
     margin: 0 auto;
 }
 
-/* Disclaimer Banner */
+/* ── Disclaimer Banner ── */
 .disclaimer-banner {
     display: flex;
     gap: var(--space-5);
-    padding: var(--space-6);
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(251, 191, 36, 0.1) 100%);
-    border: 1px solid rgba(245, 158, 11, 0.3);
-    border-radius: var(--radius-xl);
+    padding: var(--space-5) var(--space-6);
+    background: rgba(234, 179, 8, 0.04);
+    border: 1px solid rgba(234, 179, 8, 0.15);
+    border-radius: var(--radius-lg);
     margin-bottom: var(--space-10);
+    position: relative;
+}
+
+.disclaimer-banner::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--color-warning-500);
+    border-radius: 2px 0 0 2px;
+}
+
+.disclaimer-banner>svg {
     color: var(--color-warning-400);
+    flex-shrink: 0;
+    margin-top: 2px;
 }
 
 .disclaimer-banner h3 {
-    font-size: 1.125rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
     margin-bottom: var(--space-2);
     color: var(--color-warning-400);
 }
 
 .disclaimer-banner p {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     margin: 0;
     line-height: 1.6;
+    font-size: 0.875rem;
 }
 
-/* Sections */
+/* ── Sections ── */
 .ethics-section {
     margin-bottom: var(--space-12);
 }
 
 .ethics-section .section-title {
+    font-family: var(--font-display);
     font-size: 1.5rem;
-    font-weight: 600;
+    font-weight: 400;
     margin-bottom: var(--space-6);
 }
 
-/* Principles Grid */
+/* ── Principles ── */
 .principles-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-5);
+    gap: var(--space-4);
 }
 
 .principle-card {
     background: var(--bg-card);
     border: 1px solid var(--border-primary);
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-lg);
     padding: var(--space-6);
-    transition: all var(--transition-base);
+    transition: border-color var(--transition-base);
 }
 
 .principle-card:hover {
-    background: var(--bg-card-hover);
     border-color: var(--border-hover);
-    transform: translateY(-4px);
 }
 
 .principle-icon {
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(99, 102, 241, 0.15);
-    border-radius: var(--radius-lg);
-    color: var(--color-primary-400);
+    background: rgba(0, 212, 170, 0.08);
+    border-radius: var(--radius-md);
+    color: var(--color-accent-400);
     margin-bottom: var(--space-4);
 }
 
 .principle-card h3 {
-    font-size: 1.125rem;
+    font-size: 1rem;
     font-weight: 600;
     margin-bottom: var(--space-2);
 }
 
 .principle-card p {
-    font-size: 0.9375rem;
-    color: var(--text-secondary);
+    font-size: 0.875rem;
+    color: var(--text-muted);
     margin: 0;
     line-height: 1.6;
 }
 
-/* Usage Guidelines */
+/* ── Usage Guidelines ── */
 .usage-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-6);
+    gap: var(--space-5);
 }
 
 .usage-card {
     background: var(--bg-card);
     border: 1px solid var(--border-primary);
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-lg);
     padding: var(--space-6);
+    position: relative;
 }
 
-.usage-card.appropriate {
-    border-color: rgba(34, 197, 94, 0.3);
+.usage-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    border-radius: 1px;
 }
 
-.usage-card.inappropriate {
-    border-color: rgba(239, 68, 68, 0.3);
+.usage-card.appropriate::before {
+    background: var(--color-success-500);
+}
+
+.usage-card.inappropriate::before {
+    background: var(--color-danger-500);
 }
 
 .usage-header {
@@ -125,7 +156,7 @@
 }
 
 .usage-header h3 {
-    font-size: 1.125rem;
+    font-size: 1rem;
     font-weight: 600;
     margin: 0;
 }
@@ -141,7 +172,7 @@
     display: flex;
     align-items: flex-start;
     gap: var(--space-3);
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
     color: var(--text-secondary);
 }
 
@@ -157,81 +188,91 @@
     margin-top: 2px;
 }
 
-/* Info Cards */
+/* ── Info Cards ── */
 .info-cards {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-5);
+    gap: var(--space-4);
 }
 
 .info-card {
     background: var(--bg-card);
     border: 1px solid var(--border-primary);
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-lg);
     padding: var(--space-6);
     text-align: center;
+    transition: border-color var(--transition-base);
+}
+
+.info-card:hover {
+    border-color: var(--border-hover);
 }
 
 .info-card svg {
-    color: var(--color-primary-400);
+    color: var(--text-muted);
     margin-bottom: var(--space-4);
 }
 
 .info-card h3 {
-    font-size: 1.125rem;
+    font-size: 1rem;
     font-weight: 600;
     margin-bottom: var(--space-3);
 }
 
 .info-card p {
-    font-size: 0.9375rem;
-    color: var(--text-secondary);
+    font-size: 0.875rem;
+    color: var(--text-muted);
     margin: 0;
     line-height: 1.6;
 }
 
-/* FAQs */
+/* ── FAQs ── */
 .faq-list {
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
+    gap: var(--space-3);
 }
 
 .faq-item {
     background: var(--bg-card);
     border: 1px solid var(--border-primary);
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-lg);
     padding: var(--space-5);
+    transition: border-color var(--transition-base);
+}
+
+.faq-item:hover {
+    border-color: var(--border-hover);
 }
 
 .faq-question {
     display: flex;
     align-items: center;
     gap: var(--space-3);
-    color: var(--color-primary-400);
+    color: var(--color-accent-400);
     margin-bottom: var(--space-3);
 }
 
 .faq-question h4 {
-    font-size: 1rem;
+    font-size: 0.9375rem;
     font-weight: 600;
     margin: 0;
     color: var(--text-primary);
 }
 
 .faq-answer {
-    font-size: 0.9375rem;
-    color: var(--text-secondary);
+    font-size: 0.875rem;
+    color: var(--text-muted);
     margin: 0;
     padding-left: calc(18px + var(--space-3));
-    line-height: 1.6;
+    line-height: 1.7;
 }
 
-/* Resources */
+/* ── Resources ── */
 .resources-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-4);
+    gap: var(--space-3);
 }
 
 .resource-link {
@@ -241,32 +282,33 @@
     padding: var(--space-4) var(--space-5);
     background: var(--bg-card);
     border: 1px solid var(--border-primary);
-    border-radius: var(--radius-lg);
-    color: var(--text-primary);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
     text-decoration: none;
     transition: all var(--transition-fast);
 }
 
 .resource-link:hover {
-    background: var(--bg-card-hover);
-    border-color: var(--color-primary-500);
-    color: var(--color-primary-400);
+    border-color: var(--border-hover);
+    color: var(--text-primary);
+    opacity: 1;
 }
 
 .resource-link svg:first-child {
-    color: var(--color-primary-400);
+    color: var(--text-muted);
 }
 
 .resource-link span {
     flex: 1;
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
 }
 
 .resource-link svg:last-child {
     color: var(--text-muted);
+    opacity: 0.5;
 }
 
-/* Responsive */
+/* ── Responsive ── */
 @media (max-width: 1024px) {
     .principles-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -280,7 +322,6 @@
 @media (max-width: 768px) {
     .disclaimer-banner {
         flex-direction: column;
-        text-align: center;
     }
 
     .principles-grid,

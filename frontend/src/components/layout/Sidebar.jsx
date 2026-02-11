@@ -1,14 +1,13 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import {
     Shield,
-    Search,
+    Scan,
     History,
     BarChart3,
-    BookOpen,
+    Scale,
     Info,
     ChevronLeft,
     ChevronRight,
-    Scan
 } from 'lucide-react';
 import './Sidebar.css';
 
@@ -17,7 +16,7 @@ const navItems = [
     { path: '/detect', icon: Scan, label: 'Detection' },
     { path: '/history', icon: History, label: 'History' },
     { path: '/analytics', icon: BarChart3, label: 'Analytics' },
-    { path: '/ethics', icon: BookOpen, label: 'Ethics & Awareness' },
+    { path: '/ethics', icon: Scale, label: 'Ethics' },
     { path: '/about', icon: Info, label: 'About' },
 ];
 
@@ -26,25 +25,21 @@ const Sidebar = ({ isOpen, onToggle }) => {
 
     return (
         <aside className={`sidebar ${isOpen ? 'open' : 'collapsed'}`}>
-            {/* Logo */}
             <div className="sidebar-header">
                 <div className="sidebar-logo">
-                    <div className="logo-icon">
-                        <Shield size={28} />
+                    <div className="sidebar-logo-icon">
+                        <Shield size={18} />
                     </div>
-                    {isOpen && (
-                        <div className="logo-text">
-                            <span className="logo-title">EDDS</span>
-                            <span className="logo-subtitle">Deepfake Defence</span>
-                        </div>
-                    )}
+                    <div className="sidebar-logo-text">
+                        <span className="sidebar-logo-title">EDDS</span>
+                        <span className="sidebar-logo-sub">Defence System</span>
+                    </div>
                 </div>
                 <button className="sidebar-toggle" onClick={onToggle} aria-label="Toggle sidebar">
-                    {isOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
+                    {isOpen ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
                 </button>
             </div>
 
-            {/* Navigation */}
             <nav className="sidebar-nav">
                 <ul className="nav-list">
                     {navItems.map((item) => {
@@ -59,10 +54,9 @@ const Sidebar = ({ isOpen, onToggle }) => {
                                     title={!isOpen ? item.label : undefined}
                                 >
                                     <span className="nav-icon">
-                                        <Icon size={20} />
+                                        <Icon size={18} />
                                     </span>
-                                    {isOpen && <span className="nav-label">{item.label}</span>}
-                                    {isActive && <span className="nav-indicator" />}
+                                    <span className="nav-label">{item.label}</span>
                                 </NavLink>
                             </li>
                         );
@@ -70,14 +64,11 @@ const Sidebar = ({ isOpen, onToggle }) => {
                 </ul>
             </nav>
 
-            {/* Footer */}
             <div className="sidebar-footer">
-                {isOpen && (
-                    <div className="sidebar-info">
-                        <p className="info-version">Version 1.0.0</p>
-                        <p className="info-text">Research-Grade AI System</p>
-                    </div>
-                )}
+                <div className="sidebar-version">
+                    <span className="status-dot" />
+                    <span>v1.0.0</span>
+                </div>
             </div>
         </aside>
     );

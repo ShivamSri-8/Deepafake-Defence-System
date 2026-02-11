@@ -115,10 +115,10 @@ const AnalyticsPage = () => {
         scales: {
             x: {
                 grid: {
-                    color: 'rgba(255, 255, 255, 0.05)',
+                    color: 'rgba(255, 255, 255, 0.04)',
                 },
                 ticks: {
-                    color: '#64748b',
+                    color: '#52525b',
                 },
             },
             y: {
@@ -138,12 +138,12 @@ const AnalyticsPage = () => {
             {
                 label: 'Analyses',
                 data: data.dailyAnalyses,
-                borderColor: '#6366f1',
-                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                borderColor: '#00d4aa',
+                backgroundColor: 'rgba(0, 212, 170, 0.08)',
                 fill: true,
                 tension: 0.4,
-                pointBackgroundColor: '#6366f1',
-                pointBorderColor: '#fff',
+                pointBackgroundColor: '#00d4aa',
+                pointBorderColor: '#09090b',
                 pointBorderWidth: 2,
                 pointRadius: 4,
             },
@@ -157,7 +157,7 @@ const AnalyticsPage = () => {
             legend: {
                 position: 'bottom',
                 labels: {
-                    color: '#94a3b8',
+                    color: '#52525b',
                     padding: 20,
                     usePointStyle: true,
                     pointStyle: 'circle',
@@ -176,7 +176,7 @@ const AnalyticsPage = () => {
                     data.classificationBreakdown.fake,
                     data.classificationBreakdown.uncertain
                 ],
-                backgroundColor: ['#22c55e', '#ef4444', '#f59e0b'],
+                backgroundColor: ['#4ade80', '#f87171', '#fbbf24'],
                 borderWidth: 0,
             },
         ],
@@ -217,13 +217,13 @@ const AnalyticsPage = () => {
                 label: 'Count',
                 data: data.confidenceDistribution,
                 backgroundColor: [
-                    '#22c55e',
-                    '#84cc16',
-                    '#f59e0b',
-                    '#f97316',
-                    '#ef4444',
+                    '#4ade80',
+                    '#a3e635',
+                    '#fbbf24',
+                    '#fb923c',
+                    '#f87171',
                 ],
-                borderRadius: 6,
+                borderRadius: 4,
             },
         ],
     };

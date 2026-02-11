@@ -94,6 +94,7 @@ const DetectionPage = () => {
                 setProgress(percent);
             });
 
+            console.log("FINAL RESULT:", analysisResult);
             setResult(analysisResult);
         } catch (err) {
             console.error('Analysis error:', err);
