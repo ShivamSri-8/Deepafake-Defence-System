@@ -7,7 +7,7 @@
 
 <div align="center">
 
-![EDDS Banner](docs/assets/banner.png)
+
 
 **A Research-Grade AI System for Deepfake Detection, Forensic Analysis, and Explainable AI**
 
