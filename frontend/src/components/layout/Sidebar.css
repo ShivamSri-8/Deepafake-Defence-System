@@ -7,8 +7,9 @@
     left: 0;
     bottom: 0;
     width: 240px;
-    background: var(--bg-void);
-    border-right: 1px solid var(--border-primary);
+    background: rgba(10, 14, 26, 0.95);
+    border-right: 1px solid rgba(167, 139, 250, 0.1);
+    backdrop-filter: blur(24px);
     display: flex;
     flex-direction: column;
     z-index: 100;
@@ -51,10 +52,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--color-accent-400);
+    background: linear-gradient(135deg, var(--color-accent-600) 0%, var(--color-accent-500) 100%);
     border-radius: var(--radius-sm);
-    color: #050506;
+    color: #ffffff;
     flex-shrink: 0;
+    box-shadow: 0 0 12px rgba(124, 58, 237, 0.5);
 }
 
 .sidebar-logo-text {
@@ -147,7 +149,7 @@
 }
 
 .nav-link.active {
-    background: rgba(0, 212, 170, 0.08);
+    background: rgba(124, 58, 237, 0.12);
     color: var(--color-accent-400);
 }
 
@@ -157,10 +159,11 @@
     left: 0;
     top: 50%;
     transform: translateY(-50%);
-    width: 2px;
+    width: 3px;
     height: 20px;
-    background: var(--color-accent-400);
-    border-radius: 1px;
+    background: linear-gradient(180deg, var(--color-accent-400), var(--color-accent-600));
+    border-radius: 0 2px 2px 0;
+    box-shadow: 0 0 8px rgba(124, 58, 237, 0.8);
 }
 
 .nav-icon {
@@ -214,11 +217,23 @@
 }
 
 .sidebar-version .status-dot {
+    position: relative;
     width: 6px;
     height: 6px;
     background: var(--color-accent-400);
     border-radius: 50%;
     animation: pulse 3s infinite;
+    box-shadow: 0 0 6px rgba(124, 58, 237, 0.8);
+}
+
+.sidebar-version .status-dot::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: var(--color-accent-500);
+    opacity: 0;
+    animation: status-pulse 2s ease-out infinite;
 }
 
 .sidebar.collapsed .sidebar-version span:last-child {

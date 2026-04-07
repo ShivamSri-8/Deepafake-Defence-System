@@ -1,3 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
 /* =========================================
    ETHICAL DEEPFAKE DEFENCE SYSTEM
    Design System — SENTINEL
@@ -7,72 +13,76 @@
    CSS Custom Properties (Design Tokens)
    ───────────────────────────────────────── */
 :root {
-  /* ── Surface & Background ── */
-  --bg-void: #050506;
-  --bg-primary: #09090b;
-  --bg-secondary: #0f0f12;
-  --bg-tertiary: #16161a;
-  --bg-elevated: #1c1c21;
-  --bg-card: rgba(22, 22, 26, 0.85);
-  --bg-card-hover: rgba(28, 28, 33, 0.95);
-  --bg-glass: rgba(255, 255, 255, 0.03);
-  --bg-glass-hover: rgba(255, 255, 255, 0.06);
-  --bg-inset: rgba(0, 0, 0, 0.25);
+  /* ── Surface & Background (Deep Navy — Cyber Obsidian) ── */
+  --bg-void: #0a0e1a;
+  --bg-primary: #0f131f;
+  --bg-secondary: #141c2e;
+  --bg-tertiary: #1b1f2c;
+  --bg-elevated: #1e2638;
+  --bg-card: rgba(15, 19, 31, 0.9);
+  --bg-card-hover: rgba(27, 31, 44, 0.95);
+  --bg-glass: rgba(255, 255, 255, 0.04);
+  --bg-glass-hover: rgba(255, 255, 255, 0.07);
+  --bg-inset: rgba(0, 0, 0, 0.3);
 
-  /* ── Accent — Operative Teal ── */
-  --color-accent-50: #ecfdf5;
-  --color-accent-100: #d1fae5;
-  --color-accent-200: #a7f3d0;
-  --color-accent-300: #6ee7b7;
-  --color-accent-400: #00d4aa;
-  --color-accent-500: #00b894;
-  --color-accent-600: #009b7d;
-  --color-accent-700: #007a63;
-  --color-accent-800: #005c4a;
-  --color-accent-900: #003d32;
+  /* ── Primary Accent — Violet/Purple ── */
+  --color-accent-50: #f5f3ff;
+  --color-accent-100: #ede9fe;
+  --color-accent-200: #ddd6fe;
+  --color-accent-300: #c4b5fd;
+  --color-accent-400: #a78bfa;
+  --color-accent-500: #8b5cf6;
+  --color-accent-600: #7c3aed;
+  --color-accent-700: #6d28d9;
+  --color-accent-800: #5b21b6;
+  --color-accent-900: #4c1d95;
 
-  /* ── Neutral — Zinc-based ── */
-  --color-neutral-50: #fafafa;
-  --color-neutral-100: #f4f4f5;
-  --color-neutral-200: #e4e4e7;
-  --color-neutral-300: #d4d4d8;
-  --color-neutral-400: #a1a1aa;
-  --color-neutral-500: #71717a;
-  --color-neutral-600: #52525b;
-  --color-neutral-700: #3f3f46;
-  --color-neutral-800: #27272a;
-  --color-neutral-900: #18181b;
-  --color-neutral-950: #09090b;
+  /* ── Secondary Accent — Teal (kept for REAL badges) ── */
+  --color-teal-400: #2dd4bf;
+  --color-teal-500: #14b8a6;
+
+  /* ── Neutral ── */
+  --color-neutral-50: #f8faff;
+  --color-neutral-100: #dfe2f3;
+  --color-neutral-200: #bacac2;
+  --color-neutral-300: #9baeb0;
+  --color-neutral-400: #85948d;
+  --color-neutral-500: #5a6475;
+  --color-neutral-600: #3b4a44;
+  --color-neutral-700: #262a37;
+  --color-neutral-800: #1b1f2c;
+  --color-neutral-900: #0f131f;
+  --color-neutral-950: #0a0e1a;
 
   /* ── Semantic ── */
-  --color-success-400: #4ade80;
-  --color-success-500: #22c55e;
-  --color-success-600: #16a34a;
+  --color-success-400: #2dd4bf;
+  --color-success-500: #14b8a6;
+  --color-success-600: #0d9488;
 
-  --color-warning-400: #fbbf24;
-  --color-warning-500: #eab308;
-  --color-warning-600: #ca8a04;
+  --color-warning-400: #ffa858;
+  --color-warning-500: #f59e0b;
+  --color-warning-600: #d97706;
 
-  --color-danger-400: #f87171;
-  --color-danger-500: #ef4444;
-  --color-danger-600: #dc2626;
+  --color-danger-400: #ffb4ab;
+  --color-danger-500: #ff6b6b;
+  --color-danger-600: #ef4444;
 
   /* ── Text ── */
-  --text-primary: #fafafa;
-  --text-secondary: #a1a1aa;
-  --text-muted: #52525b;
-  --text-accent: #00d4aa;
+  --text-primary: #dfe2f3;
+  --text-secondary: #bacac2;
+  --text-muted: #85948d;
+  --text-accent: #a78bfa;
 
   /* ── Borders ── */
   --border-primary: rgba(255, 255, 255, 0.06);
-  --border-hover: rgba(255, 255, 255, 0.12);
-  --border-accent: rgba(0, 212, 170, 0.35);
-  --border-strong: rgba(255, 255, 255, 0.18);
+  --border-hover: rgba(167, 139, 250, 0.2);
+  --border-accent: rgba(124, 58, 237, 0.4);
+  --border-strong: rgba(255, 255, 255, 0.12);
 
   /* ── Typography ── */
-  --font-display: 'Instrument Serif', Georgia, 'Times New Roman', serif;
-  --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'IBM Plex Mono', 'Menlo', 'Consolas', monospace;
+  --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'IBM Plex Mono', 'Menlo', 'Consolas', monospace;
 
   /* ── Spacing (8px base) ── */
   --space-1: 0.25rem;
@@ -153,14 +163,15 @@ body {
   overflow-x: hidden;
 }
 
-/* Subtle noise texture overlay for depth */
+/* Atmospheric depth overlay — violet nebula */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0, 212, 170, 0.03) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(0, 150, 136, 0.02) 0%, transparent 50%);
+    radial-gradient(ellipse 70% 50% at 15% 0%, rgba(124, 58, 237, 0.07) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 85% 100%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(167, 139, 250, 0.03) 0%, transparent 60%);
   pointer-events: none;
   z-index: -1;
 }
@@ -180,7 +191,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: var(--font-body);
+  font-family: var(--font-display);
   font-weight: 600;
   line-height: 1.25;
   color: var(--text-primary);
@@ -190,8 +201,8 @@ h6 {
 h1 {
   font-family: var(--font-display);
   font-size: 2.75rem;
-  font-weight: 400;
-  letter-spacing: -0.02em;
+  font-weight: 700;
+  letter-spacing: -0.03em;
   line-height: 1.1;
 }
 
@@ -312,20 +323,21 @@ a:hover {
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
   padding: var(--space-6);
-  backdrop-filter: blur(12px);
-  transition: border-color var(--transition-base);
+  backdrop-filter: blur(20px);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
 }
 
 .card:hover {
-  border-color: var(--border-hover);
+  border-color: rgba(167, 139, 250, 0.18);
+  box-shadow: 0 0 24px rgba(124, 58, 237, 0.08);
 }
 
 .card-glass {
-  background: var(--bg-glass);
+  background: rgba(27, 31, 44, 0.6);
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
   padding: var(--space-6);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(24px);
 }
 
 .card-header {
@@ -370,19 +382,21 @@ a:hover {
 }
 
 .btn-primary {
-  background: var(--color-accent-400);
-  color: #050506;
+  background: linear-gradient(135deg, var(--color-accent-500) 0%, var(--color-accent-600) 100%);
+  color: #ffffff;
   font-weight: 600;
+  box-shadow: 0 0 20px rgba(124, 58, 237, 0.35);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--color-accent-300);
+  background: linear-gradient(135deg, var(--color-accent-400) 0%, var(--color-accent-500) 100%);
+  box-shadow: 0 0 28px rgba(124, 58, 237, 0.5);
 }
 
 .btn-secondary {
-  background: var(--bg-glass);
-  color: var(--text-secondary);
-  border: 1px solid var(--border-primary);
+  background: rgba(167, 139, 250, 0.06);
+  color: var(--color-accent-400);
+  border: 1px solid rgba(167, 139, 250, 0.2);
 }
 
 .btn-secondary:hover:not(:disabled) {
@@ -555,6 +569,14 @@ a:hover {
   padding: var(--space-5);
   position: relative;
   overflow: hidden;
+  backdrop-filter: blur(20px);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base), transform var(--transition-base);
+}
+
+.stat-card:hover {
+  border-color: rgba(167, 139, 250, 0.2);
+  box-shadow: 0 0 20px rgba(124, 58, 237, 0.1);
+  transform: translateY(-1px);
 }
 
 .stat-card::before {
@@ -564,20 +586,20 @@ a:hover {
   left: 0;
   right: 0;
   height: 2px;
-  background: var(--color-accent-400);
-  opacity: 0.6;
+  background: linear-gradient(90deg, var(--color-accent-600), var(--color-accent-400));
+  opacity: 0.8;
 }
 
 .stat-card.success::before {
-  background: var(--color-success-500);
+  background: linear-gradient(90deg, var(--color-success-600), var(--color-success-400));
 }
 
 .stat-card.danger::before {
-  background: var(--color-danger-500);
+  background: linear-gradient(90deg, var(--color-danger-600), var(--color-danger-400));
 }
 
 .stat-card.warning::before {
-  background: var(--color-warning-500);
+  background: linear-gradient(90deg, var(--color-warning-600), var(--color-warning-400));
 }
 
 .stat-icon {
@@ -674,15 +696,22 @@ a:hover {
 }
 
 @keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
 
-  0%,
-  100% {
-    opacity: 1;
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 4px rgba(124, 58, 237, 0.6);
   }
-
   50% {
-    opacity: 0.5;
+    box-shadow: 0 0 12px rgba(124, 58, 237, 1), 0 0 24px rgba(167, 139, 250, 0.4);
   }
+}
+
+@keyframes status-pulse {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(2.5); opacity: 0; }
 }
 
 .animate-fade-in {
