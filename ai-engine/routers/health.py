@@ -39,6 +39,17 @@ async def detailed_health_check():
             }
     except:
         pass
+
+    # Dynamically reflect actual model load state
+    simulation_mode = True
+    models_message = "Running with simulated detection results"
+    try:
+        from routers.detection import detector  # import the shared singleton
+        simulation_mode = not detector.models_loaded
+        if not simulation_mode:
+            models_message = "Real ML models loaded and active"
+    except Exception:
+        pass
     
     return {
         "status": "healthy",
@@ -60,7 +71,7 @@ async def detailed_health_check():
             "info": gpu_info
         },
         "models": {
-            "simulation_mode": True,  # Will be updated when models are loaded
-            "message": "Running with simulated detection results"
+            "simulation_mode": simulation_mode,
+            "message": models_message
         }
     }

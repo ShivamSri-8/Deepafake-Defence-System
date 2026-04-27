@@ -2,6 +2,11 @@ const Analysis = require('../models/Analysis');
 const User = require('../models/User');
 const { getMediaType, deleteFile } = require('../middleware/upload');
 const aiEngineService = require('../services/aiEngine.service');
+const {
+    computeAgreementScore,
+    computeTrustScore,
+    computeConfidenceLevel,
+} = require('../utils/trustScore');
 
 // @desc    Submit media for analysis
 // @route   POST /api/v1/detect
@@ -103,6 +108,7 @@ exports.getAnalysisResult = async (req, res, next) => {
                     forensics: analysis.forensics,
                     explanation: analysis.explanation,
                     metadata: analysis.metadata,
+                    trustAware: analysis.trustAware || null,
                     completedAt: analysis.completedAt,
                     disclaimer: getDisclaimer(analysis.result.probability)
                 }),
@@ -194,6 +200,13 @@ async function processAnalysis(analysisId) {
             aiEngineVersion: result.aiEngineVersion || '1.0.0-simulated',
             modelsUsed: result.modelsUsed || ['xception', 'efficientnet', 'cnn_lstm'],
             disclaimerShown: true
+        };
+        // Trust-aware fields (v1.1) — stored alongside other results
+        analysis.trustAware = {
+            trustScore: result.trustScore ?? null,
+            temporalVariance: result.temporalVariance ?? null,
+            temporalLabel: result.temporalLabel ?? null,
+            confidenceLevel: result.confidenceLevel ?? null,
         };
 
         await analysis.updateStatus('completed');
@@ -319,7 +332,15 @@ async function simulateAnalysis(analysis, stages) {
             ]
         },
         processingTime: (Date.now() - startTime) / 1000,
-        aiEngineVersion: '1.0.0-simulation'
+        aiEngineVersion: '1.0.0-simulation',
+        // Trust-aware fields (v1.1)
+        trustScore: computeTrustScore(
+            0.87,
+            computeAgreementScore([probability + (Math.random() - 0.5) * 0.1, probability + (Math.random() - 0.5) * 0.1])
+        ),
+        temporalVariance: null,
+        temporalLabel: null,
+        confidenceLevel: computeConfidenceLevel(87),
     };
 }
 

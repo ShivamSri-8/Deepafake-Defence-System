@@ -1,6 +1,12 @@
 const axios = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
+const {
+    computeAgreementScore,
+    computeTrustScore,
+    computeTemporalVariance,
+    computeConfidenceLevel,
+} = require('../utils/trustScore');
 
 const AI_ENGINE_URL = process.env.AI_ENGINE_URL || 'http://localhost:8000';
 
@@ -137,6 +143,16 @@ class AIEngineService {
         const probability = Math.random() * 0.6 + 0.2; // 0.2 to 0.8
         const isFake = probability >= 0.5;
 
+        // Trust-aware fields
+        const modelScores = [
+            probability + (Math.random() - 0.5) * 0.1,
+            probability + (Math.random() - 0.5) * 0.1,
+        ];
+        const confidence = 0.87;
+        const agreement = computeAgreementScore(modelScores);
+        const trustScore = computeTrustScore(confidence, agreement);
+        const confidenceLevel = computeConfidenceLevel(confidence * 100);
+
         return {
             result: {
                 classification: isFake ? 'LIKELY_FAKE' : 'LIKELY_AUTHENTIC',
@@ -147,8 +163,8 @@ class AIEngineService {
                 }
             },
             modelPredictions: {
-                xception: { probability: probability + (Math.random() - 0.5) * 0.1, confidence: 0.85 },
-                efficientnet: { probability: probability + (Math.random() - 0.5) * 0.1, confidence: 0.88 },
+                xception: { probability: modelScores[0], confidence: 0.85 },
+                efficientnet: { probability: modelScores[1], confidence: 0.88 },
                 cnnLstm: null,
                 ensemble: { probability: probability, confidence: 0.87 }
             },
@@ -158,7 +174,12 @@ class AIEngineService {
             aiEngineVersion: '1.0.0-simulation',
             modelsUsed: ['simulation'],
             isSimulated: true,
-            disclaimer: 'This is a simulated result. AI Engine is not available.'
+            disclaimer: 'This is a simulated result. AI Engine is not available.',
+            // Trust-aware outputs
+            trustScore: trustScore,
+            temporalVariance: null,
+            temporalLabel: null,
+            confidenceLevel: confidenceLevel,
         };
     }
 
@@ -252,7 +273,12 @@ class AIEngineService {
             },
             processingTime: data.processing_time || 0,
             aiEngineVersion: data.version || '1.0.0',
-            modelsUsed: data.models_used || ['xception', 'efficientnet']
+            modelsUsed: data.models_used || ['xception', 'efficientnet'],
+            // Trust-aware fields (forwarded from AI engine response)
+            trustScore: data.result?.trust_score ?? null,
+            temporalVariance: data.result?.temporal_variance ?? null,
+            temporalLabel: data.result?.temporal_label ?? null,
+            confidenceLevel: data.result?.confidence_level ?? null,
         };
     }
 

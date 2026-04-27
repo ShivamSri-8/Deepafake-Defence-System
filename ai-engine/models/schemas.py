@@ -43,6 +43,11 @@ class DetectionResult(BaseModel):
     model_predictions: List[ModelPrediction] = Field(default=[], description="Individual model predictions")
     face_detected: bool = Field(default=True, description="Whether a face was detected")
     notes: List[str] = Field(default=[], description="Additional notes or warnings")
+    # ── Trust-Aware Fields (v1.1) ──────────────────────────────────────────
+    trust_score: Optional[float] = Field(default=None, description="Composite trust score (0-100)")
+    temporal_variance: Optional[float] = Field(default=None, description="Frame-to-frame prediction variance (video only)")
+    temporal_label: Optional[str] = Field(default=None, description="Temporal consistency label (video only)")
+    confidence_level: Optional[str] = Field(default=None, description="Self-aware confidence label")
 
 
 class DetectionRequest(BaseModel):

@@ -218,7 +218,7 @@ const AboutPage = () => {
             <section className="about-footer">
                 <div className="footer-content">
                     <h3>Ethical Deepfake Defence System</h3>
-                    <p>Final Year Major Project • 2026</p>
+                    <p>Developed by Shivam Srivastav</p>
                     <div className="footer-links">
                         <a href="#" className="footer-link">
                             <Github size={20} />

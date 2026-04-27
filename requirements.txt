@@ -1,0 +1,16 @@
+torch>=2.2.0
+torchvision>=0.17.0
+torchaudio>=2.2.0
+numpy>=1.26.0
+pandas>=2.2.0
+scikit-learn>=1.4.0
+tqdm>=4.66.0
+opencv-python>=4.9.0.80
+matplotlib>=3.8.2
+pillow>=10.2.0
+# Optional: if you use TensorFlow for any part of the pipeline
+# tensorflow>=2.15.0
+# For handling .yaml config files
+pyyaml>=6.0.1
+# For logging and experiment tracking (optional)
+# wandb>=0.17.0
