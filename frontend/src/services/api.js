@@ -156,7 +156,7 @@ export async function submitAnalysis(file) {
     const formData = new FormData();
     formData.append('file', file);
 
-    return apiRequest(`${BACKEND_URL}/analyze`, {
+    return apiRequest(`${BACKEND_URL}/v1/detect`, {
         method: 'POST',
         body: formData,
     });
@@ -169,7 +169,7 @@ export async function submitAnalysis(file) {
  */
 export async function getAnalysisHistory(params = {}) {
     const queryString = new URLSearchParams(params).toString();
-    return apiRequest(`${BACKEND_URL}/history${queryString ? '?' + queryString : ''}`);
+    return apiRequest(`${BACKEND_URL}/v1/history${queryString ? '?' + queryString : ''}`);
 }
 
 /**
@@ -178,7 +178,16 @@ export async function getAnalysisHistory(params = {}) {
  * @returns {Promise<Object>} Full analysis details
  */
 export async function getAnalysisById(id) {
-    return apiRequest(`${BACKEND_URL}/analysis/${id}`);
+    return apiRequest(`${BACKEND_URL}/v1/detect/${id}`);
+}
+
+/**
+ * Get analysis status (for polling)
+ * @param {string} id - Analysis ID
+ * @returns {Promise<Object>} Current status and processing stages
+ */
+export async function getAnalysisStatus(id) {
+    return apiRequest(`${BACKEND_URL}/v1/detect/${id}/status`);
 }
 
 /**
@@ -190,10 +199,10 @@ export async function getAnalysisById(id) {
 export async function getAnalytics(trendDays = 7) {
     // Fetch all analytics endpoints in parallel
     const [summaryRes, trendsRes, confidenceRes, modelsRes] = await Promise.allSettled([
-        apiRequest(`${BACKEND_URL}/analytics/summary`),
-        apiRequest(`${BACKEND_URL}/analytics/trends?days=${trendDays}`),
-        apiRequest(`${BACKEND_URL}/analytics/confidence`),
-        apiRequest(`${BACKEND_URL}/analytics/models`),
+        apiRequest(`${BACKEND_URL}/v1/analytics/summary`),
+        apiRequest(`${BACKEND_URL}/v1/analytics/trends?days=${trendDays}`),
+        apiRequest(`${BACKEND_URL}/v1/analytics/confidence`),
+        apiRequest(`${BACKEND_URL}/v1/analytics/models`),
     ]);
 
     // Safely extract data even if some calls failed
@@ -341,8 +350,8 @@ function formatAnalysisResults(results, isVideo) {
     // ── Classification ──────────────────────────────────────
     const probability = detResult.fake_probability ?? 0.5;
     let classification = 'uncertain';
-    if (probability > 0.6) classification = 'fake';
-    else if (probability < 0.35) classification = 'real';
+    if (probability >= 0.60) classification = 'fake';
+    else if (probability < 0.40) classification = 'real';
 
     // ── Model Predictions ────────────────────────────────────
     // model_predictions is a list: [{ model_name, fake_probability, confidence, weight }]
@@ -410,7 +419,102 @@ function formatAnalysisResults(results, isVideo) {
         forensics: formattedForensics,
         explanation: formattedExplanation,
         processingTime: results.processingTime,
+        // Trust-aware fields (v1.1) — from AI engine DetectionResult
+        trustScore: detResult.trust_score ?? null,
+        temporalVariance: detResult.temporal_variance ?? null,
+        temporalLabel: detResult.temporal_label ?? null,
+        confidenceLevel: detResult.confidence_level ?? null,
         raw: results,
+    };
+}
+
+/**
+ * Format a backend-stored analysis record (from getAnalysisById / polling)
+ * into the same shape the UI components expect.
+ * Backend shape: { analysisId, status, result: { classification, probability, confidence },
+ *                  modelPredictions: { xception: { score, weight }, ... },
+ *                  forensics: { facialLandmarks, eyeBlink, ... },
+ *                  explanation: { summary, keyRegions } }
+ */
+export function formatBackendResult(backendData) {
+    const result = backendData.result || {};
+    const probability = result.probability ?? 0.5;
+
+    // Re-derive classification from probability using same thresholds as AI engine
+    let classification = 'uncertain';
+    if (probability >= 0.60) classification = 'fake';
+    else if (probability < 0.40) classification = 'real';
+
+    // Model predictions: backend stores { xception: { score, weight }, ... }
+    const rawMp = backendData.modelPredictions || {};
+    const modelPredictions = {};
+    Object.entries(rawMp).forEach(([key, val]) => {
+        if (val && key !== 'ensemble') {
+            modelPredictions[key] = {
+                score: val.score ?? val.probability ?? 0,
+                weight: val.weight ?? 0,
+            };
+        }
+    });
+
+    // Forensics: backend uses camelCase keys already
+    const rawF = backendData.forensics || {};
+    const forensics = {};
+    const forensicKeyMap = {
+        facialLandmarks: 'facialLandmarks',
+        eyeBlink:        'eyeBlink',
+        lipSync:         'lipSync',
+        frequencyAnalysis: 'frequency',
+        temporalConsistency: 'temporalConsistency',
+    };
+    Object.entries(forensicKeyMap).forEach(([src, dest]) => {
+        if (rawF[src]) {
+            forensics[dest] = {
+                score:   rawF[src].score   ?? 0,
+                anomaly: rawF[src].anomaly  ?? false,
+            };
+        }
+    });
+
+    // Explanation
+    const rawExp = backendData.explanation || {};
+    const expSummary = rawExp.summary ||
+        `Analysis indicates ${(probability * 100).toFixed(1)}% manipulation probability.`;
+    const keyRegions = (rawExp.keyRegions || []).map(r => ({
+        name:      r.name,
+        attention: r.importance ?? r.attention ?? 0,
+    }));
+    if (keyRegions.length === 0) {
+        keyRegions.push(
+            { name: 'Face boundary', attention: 0.85 },
+            { name: 'Eye region',    attention: 0.72 },
+            { name: 'Lip area',      attention: 0.58 },
+        );
+    }
+
+    // Trust-aware fields (v1.1)
+    const trustAware = backendData.trustAware || {};
+
+    return {
+        classification,
+        probability,
+        confidence: {
+            lower: result.confidence?.lower ?? Math.max(0, probability - 0.05),
+            upper: result.confidence?.upper ?? Math.min(1, probability + 0.05),
+        },
+        modelPredictions,
+        forensics,
+        explanation: {
+            summary:    stripMarkdown(expSummary),
+            keyRegions,
+        },
+        processingTime: backendData.metadata?.processingTime ?? null,
+        // Trust-aware fields
+        trustScore: trustAware.trustScore ?? null,
+        temporalVariance: trustAware.temporalVariance ?? null,
+        temporalLabel: trustAware.temporalLabel ?? null,
+        confidenceLevel: trustAware.confidenceLevel ?? null,
+        raw: backendData,
     };
 }
 

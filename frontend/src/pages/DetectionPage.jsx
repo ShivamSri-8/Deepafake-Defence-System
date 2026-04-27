@@ -18,10 +18,22 @@ import {
   WifiOff,
   RotateCcw,
   Download,
+  Shield,
+  Gauge,
+  Clock,
 } from "lucide-react";
 
-import { performFullAnalysis, checkAIEngineHealth } from "../services/api";
+import { 
+  performFullAnalysis, 
+  checkAIEngineHealth,
+  submitAnalysis,
+  getAnalysisStatus,
+  getAnalysisById,
+  formatBackendResult
+} from "../services/api";
 import "./DetectionPage.css";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 // Helpers
 const formatBytes = (bytes) => {
@@ -115,6 +127,7 @@ const DetectionPage = () => {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [apiMode, setApiMode] = useState("checking");
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   useEffect(() => {
     const checkBackend = async () => {
@@ -162,23 +175,125 @@ const DetectionPage = () => {
     setError(null);
   };
 
+  // ── Download Report as PDF ────────────────────────────────────────────
+  const downloadReport = async () => {
+    const element = document.getElementById("report-section");
+    if (!element) return;
+
+    setIsGeneratingPdf(true);
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#0c0e14",
+        logging: false,
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+
+      const imgWidth = 190;
+      const pageHeight = 297;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      let position = 10;
+      let heightLeft = imgHeight;
+
+      // First page
+      pdf.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
+      heightLeft -= (pageHeight - 20);
+
+      // Extra pages if report is longer than one A4
+      while (heightLeft > 0) {
+        position = -(pageHeight - 20) + 10;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 10, position + (heightLeft - imgHeight + (pageHeight - 20)), imgWidth, imgHeight);
+        heightLeft -= (pageHeight - 20);
+      }
+
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+      pdf.save(`EDDS_Report_${timestamp}.pdf`);
+    } catch (err) {
+      console.error("PDF generation error:", err);
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
   const startAnalysis = async () => {
     setIsAnalyzing(true);
-    setProgress(0);
+    setProgress(5);
     setResult(null);
     setError(null);
+    setCurrentStage("Uploading to secure vault...");
 
+    // ── Path A: Try backend (requires auth) ──────────────────────────────
+    let backendSucceeded = false;
     try {
-      const analysisResult = await performFullAnalysis(file, (stage, percent) => {
-        setCurrentStage(stage);
-        setProgress(percent);
-      });
-      setResult(analysisResult);
-    } catch (err) {
-      setError(err.message || "Analysis failed. Please try again.");
-    } finally {
-      setIsAnalyzing(false);
+      const submission = await submitAnalysis(file);
+      const analysisId = submission.data.analysisId;
+
+      setProgress(15);
+      setCurrentStage("Analysing with ensemble models...");
+
+      // Poll for completion
+      let isDone = false;
+      let pollCount = 0;
+      const MAX_POLLS = 60;
+
+      while (!isDone && pollCount < MAX_POLLS) {
+        pollCount++;
+        await new Promise(r => setTimeout(r, 2000));
+
+        const statusRes = await getAnalysisStatus(analysisId);
+        const { status, stages } = statusRes.data;
+
+        if (stages && stages.length > 0) {
+          const current = stages[stages.length - 1];
+          setCurrentStage(
+            current.stage.replace(/_/g, ' ').charAt(0).toUpperCase() +
+            current.stage.replace(/_/g, ' ').slice(1)
+          );
+          setProgress(Math.min(20 + stages.length * 10, 95));
+        }
+
+        if (status === 'completed') {
+          isDone = true;
+          const finalRes = await getAnalysisById(analysisId);
+          // Backend returns { data: { result, modelPredictions, forensics, explanation, ... } }
+          setResult(formatBackendResult(finalRes.data));
+          setProgress(100);
+          setCurrentStage("Analysis Complete");
+          backendSucceeded = true;
+        } else if (status === 'failed') {
+          throw new Error("Cloud analysis failed.");
+        }
+      }
+
+      if (!isDone) throw new Error("Analysis timed out.");
+
+    } catch (backendErr) {
+      // Backend unavailable or user not logged in—fall through to direct AI engine
+      console.warn("Backend path unavailable, using direct AI engine:", backendErr.message);
     }
+
+    // ── Path B: Direct AI engine (no auth needed) ────────────────────────
+    if (!backendSucceeded) {
+      try {
+        setProgress(20);
+        setCurrentStage("Connecting to AI engine directly...");
+        const localResult = await performFullAnalysis(file, (stage, percent) => {
+          setCurrentStage(stage);
+          setProgress(percent);
+        });
+        setResult(localResult);
+        setError(null);
+      } catch (localErr) {
+        setError(localErr.message || "Analysis failed. Please check the AI engine is running.");
+      }
+    }
+
+    setIsAnalyzing(false);
   };
 
   const isVideo = file?.type?.includes("video");
@@ -401,6 +516,8 @@ const DetectionPage = () => {
 
               {/* Results */}
               {result && (
+                <>
+                <div id="report-section" className="report-section">
                 <div className="results-content animate-slide-up">
                   {/* ── Classification Banner ── */}
                   <div className={`result-card ${getResultClass(result.classification)}`}>
@@ -430,8 +547,25 @@ const DetectionPage = () => {
                       />
                     </div>
                   </div>
+                  {/* ── Simulation Mode Warning ── */}
+                  {(result.raw?.detection?.result?.notes?.some(n => n.includes('Simulation')) ||
+                    result.explanation?.summary?.toLowerCase().includes('simulated') ||
+                    apiMode === 'simulation') && (
+                    <div className="error-message" style={{
+                      background: 'rgba(245, 158, 11, 0.08)',
+                      borderColor: 'rgba(245, 158, 11, 0.35)',
+                      color: 'var(--color-warning-400)',
+                      marginBottom: '12px'
+                    }}>
+                      <AlertTriangle size={15} />
+                      <span>
+                        <strong>Simulation Mode:</strong> No trained model weights found. These results are
+                        statistically simulated — not from real AI inference. Train the models for accurate detection.
+                      </span>
+                    </div>
+                  )}
 
-                  {/* ── Model Predictions ── */}
+
                   <div className="card">
                     <div className="result-section-title">
                       <Brain size={12} />
@@ -582,13 +716,120 @@ const DetectionPage = () => {
                     </div>
                   )}
 
+                  {/* ── Trust-Aware Intelligence Panel (v1.1) ── */}
+                  {(result.trustScore !== null || result.confidenceLevel) && (
+                    <div className="card trust-aware-panel">
+                      <div className="result-section-title">
+                        <Shield size={12} />
+                        Trust-Aware Intelligence
+                      </div>
+
+                      <div className="trust-grid">
+                        {/* Trust Score */}
+                        {result.trustScore !== null && (
+                          <div className="trust-item">
+                            <div className="trust-item-header">
+                              <Shield size={14} className="trust-icon trust-icon-shield" />
+                              <span className="trust-item-label">Trust Score</span>
+                            </div>
+                            <div className="trust-score-display">
+                              <span className="trust-score-value">{result.trustScore.toFixed(1)}</span>
+                              <span className="trust-score-max">/ 100</span>
+                            </div>
+                            <div className="trust-bar">
+                              <div
+                                className={`trust-bar-fill ${
+                                  result.trustScore >= 75 ? 'high' :
+                                  result.trustScore >= 50 ? 'moderate' : 'low'
+                                }`}
+                                style={{ width: `${result.trustScore}%` }}
+                              />
+                            </div>
+                            <span className="trust-hint">
+                              Composite of confidence, model agreement & forensics
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Confidence Level */}
+                        {result.confidenceLevel && (
+                          <div className="trust-item">
+                            <div className="trust-item-header">
+                              <Gauge size={14} className="trust-icon trust-icon-gauge" />
+                              <span className="trust-item-label">Confidence Level</span>
+                            </div>
+                            <span className={`confidence-badge ${
+                              result.confidenceLevel.includes('High') ? 'badge-high' :
+                              result.confidenceLevel.includes('Moderate') ? 'badge-moderate' : 'badge-low'
+                            }`}>
+                              {result.confidenceLevel}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Temporal Status (video only) */}
+                        {result.temporalVariance !== null && result.temporalVariance !== undefined && (
+                          <div className="trust-item trust-item-temporal">
+                            <div className="trust-item-header">
+                              <Clock size={14} className="trust-icon trust-icon-clock" />
+                              <span className="trust-item-label">Temporal Consistency</span>
+                            </div>
+                            <div className="temporal-info">
+                              <span className={`temporal-badge ${
+                                result.temporalLabel === 'Stable' ? 'temporal-stable' :
+                                result.temporalLabel === 'Moderate Variation' ? 'temporal-moderate' : 'temporal-unstable'
+                              }`}>
+                                {result.temporalLabel}
+                              </span>
+                              <span className="temporal-variance">
+                                σ² = {result.temporalVariance.toFixed(4)}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   {/* ── Processing Info ── */}
                   <div className="processing-info">
                     <Activity size={13} />
                     Processed in {result.processingTime?.toFixed(2)}s ·{" "}
                     {apiMode === "live" ? "Live AI Engine" : "Simulated"}
                   </div>
+
+                  {/* ── Report Disclaimer Footer ── */}
+                  <div className="report-disclaimer">
+                    <Info size={13} />
+                    <span>
+                      This is an AI-generated analysis and should not be
+                      considered as absolute proof. Results are probabilistic
+                      and must be verified by qualified experts.
+                    </span>
+                  </div>
                 </div>
+                </div>
+
+                {/* ── Download Report Button (outside captured area) ── */}
+                <button
+                  id="download-report-btn"
+                  className="btn btn-download-report"
+                  onClick={downloadReport}
+                  disabled={isGeneratingPdf}
+                >
+                  {isGeneratingPdf ? (
+                    <>
+                      <Loader2 size={15} className="spin" />
+                      Generating PDF…
+                    </>
+                  ) : (
+                    <>
+                      <Download size={15} />
+                      Download Report
+                    </>
+                  )}
+                </button>
+                </>
               )}
             </div>
           </div>
