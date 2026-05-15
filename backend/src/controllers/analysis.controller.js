@@ -191,7 +191,13 @@ async function processAnalysis(analysisId) {
         }
 
         // Update analysis with results
-        analysis.result = result.result;
+        // Normalise classification to match Mongoose enum ['real', 'fake', 'uncertain']
+        const storedResult = { ...result.result };
+        const prob = storedResult.probability ?? 0.5;
+        if (!['real', 'fake', 'uncertain'].includes(storedResult.classification)) {
+            storedResult.classification = prob >= 0.60 ? 'fake' : prob < 0.40 ? 'real' : 'uncertain';
+        }
+        analysis.result = storedResult;
         analysis.modelPredictions = result.modelPredictions;
         analysis.forensics = result.forensics;
         analysis.explanation = result.explanation;

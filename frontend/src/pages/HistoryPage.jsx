@@ -16,7 +16,7 @@ import {
     RefreshCw,
     Database
 } from 'lucide-react';
-import { getAnalysisHistory, getAnalysisById } from '../services/api';
+import { getAnalysisHistory, getAnalysisById, getLocalAnalyses } from '../services/api';
 import './HistoryPage.css';
 
 const HistoryPage = () => {
@@ -45,12 +45,13 @@ const HistoryPage = () => {
         { id: 8, name: 'id_card_scan.jpg', type: 'image', result: 'real', confidence: 97.2, date: '2026-02-04', size: '0.8 MB' },
     ];
 
-    // Fetch analyses from API
+    // Fetch analyses from API and localStorage
     const fetchAnalyses = useCallback(async () => {
         setLoading(true);
         setError(null);
 
         try {
+            // Try to fetch from backend API
             const response = await getAnalysisHistory({
                 page: currentPage,
                 limit: itemsPerPage,
@@ -59,27 +60,71 @@ const HistoryPage = () => {
             });
 
             // Transform API response to match our format
-            const formattedAnalyses = (response.items || response.data || []).map(item => ({
-                id: item.id || item._id,
-                name: item.filename || item.file_name || 'Unknown',
-                type: item.media_type || (item.filename?.match(/\.(mp4|webm|mov)$/i) ? 'video' : 'image'),
-                result: item.classification || (item.fake_probability > 0.6 ? 'fake' : item.fake_probability < 0.35 ? 'real' : 'uncertain'),
-                confidence: (item.confidence || item.fake_probability || 0.5) * 100,
-                date: new Date(item.created_at || item.timestamp || Date.now()).toISOString().split('T')[0],
-                size: formatFileSize(item.file_size || 0),
+            const apiData = response.items || response.data || [];
+            const formattedApiAnalyses = apiData.map(item => ({
+                id: item.id || item.analysisId || item._id,
+                name: item.name || item.filename || item.file_name || 'Unknown',
+                type: item.type || item.media_type || (item.name?.match(/\.(mp4|webm|mov)$/i) ? 'video' : 'image'),
+                result: item.result || item.classification || (item.fake_probability > 0.6 ? 'fake' : item.fake_probability < 0.35 ? 'real' : 'uncertain'),
+                confidence: parseFloat(item.confidence || (item.fake_probability ? item.fake_probability * 100 : 50)),
+                date: new Date(item.date || item.created_at || item.timestamp || Date.now()).toISOString().split('T')[0],
+                size: typeof item.size === 'string' ? item.size : formatFileSize(item.size || item.file_size || 0),
                 raw: item
             }));
 
-            setAnalyses(formattedAnalyses);
-            setTotalPages(response.total_pages || Math.ceil((response.total || formattedAnalyses.length) / itemsPerPage));
+            // Get local analyses from localStorage
+            const localAnalyses = getLocalAnalyses().map(item => ({
+                id: item.id,
+                name: item.name,
+                type: item.type,
+                result: item.result,
+                confidence: item.confidence,
+                date: new Date(item.timestamp).toISOString().split('T')[0],
+                size: item.size,
+                raw: item,
+                isLocal: true
+            }));
+
+            // Combine API and local analyses, with local ones shown first (more recent)
+            const allAnalyses = [...localAnalyses, ...formattedApiAnalyses];
+
+            setAnalyses(allAnalyses);
+            setTotalPages(Math.ceil(allAnalyses.length / itemsPerPage));
             setUsingMockData(false);
 
         } catch (err) {
-            console.warn('Failed to fetch history from API, using mock data:', err);
-            // Use mock data as fallback
-            setAnalyses(mockAnalyses);
-            setTotalPages(1);
-            setUsingMockData(true);
+            console.warn('Failed to fetch history from API:', err);
+            
+            // Still try to show local analyses even if API fails
+            try {
+                const localAnalyses = getLocalAnalyses().map(item => ({
+                    id: item.id,
+                    name: item.name,
+                    type: item.type,
+                    result: item.result,
+                    confidence: item.confidence,
+                    date: new Date(item.timestamp).toISOString().split('T')[0],
+                    size: item.size,
+                    raw: item,
+                    isLocal: true
+                }));
+                
+                if (localAnalyses.length > 0) {
+                    setAnalyses(localAnalyses);
+                    setTotalPages(Math.ceil(localAnalyses.length / itemsPerPage));
+                    setUsingMockData(false);
+                } else {
+                    // Only use mock data if no local analyses exist
+                    setAnalyses(mockAnalyses);
+                    setTotalPages(1);
+                    setUsingMockData(true);
+                }
+            } catch (localErr) {
+                console.error('Error retrieving local analyses:', localErr);
+                setAnalyses(mockAnalyses);
+                setTotalPages(1);
+                setUsingMockData(true);
+            }
         } finally {
             setLoading(false);
         }
@@ -90,6 +135,11 @@ const HistoryPage = () => {
         fetchAnalyses();
     }, [fetchAnalyses]);
 
+    // Reset page when filter or search changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [filter, searchQuery]);
+
     // Format file size
     function formatFileSize(bytes) {
         if (!bytes || bytes === 0) return '0 B';
@@ -99,18 +149,24 @@ const HistoryPage = () => {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
     }
 
-    // Filter analyses (for mock data filtering)
-    const filteredAnalyses = usingMockData
-        ? analyses.filter(item => {
-            const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-            const matchesFilter = filter === 'all' || item.result === filter;
-            return matchesSearch && matchesFilter;
-        })
-        : analyses;
+    // Filter analyses (apply to all data types - API, local, and mock)
+    const filteredAnalyses = analyses.filter(item => {
+        const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesFilter = filter === 'all' || item.result === filter;
+        return matchesSearch && matchesFilter;
+    });
+
+    // Calculate actual total pages based on filtered results
+    const actualTotalPages = Math.ceil(filteredAnalyses.length / itemsPerPage);
+
+    // Paginate filtered results
+    const startIdx = (currentPage - 1) * itemsPerPage;
+    const endIdx = startIdx + itemsPerPage;
+    const paginatedAnalyses = filteredAnalyses.slice(startIdx, endIdx);
 
     // View analysis details
     const viewDetails = async (item) => {
-        if (!usingMockData && item.id) {
+        if (!item.isLocal && !usingMockData && item.id) {
             try {
                 const details = await getAnalysisById(item.id);
                 setSelectedAnalysis({ ...item, details });
@@ -168,7 +224,7 @@ const HistoryPage = () => {
 
     // Pagination helpers
     const goToPage = (page) => {
-        if (page >= 1 && page <= totalPages) {
+        if (page >= 1 && page <= actualTotalPages) {
             setCurrentPage(page);
         }
     };
@@ -177,15 +233,15 @@ const HistoryPage = () => {
         const pages = [];
         const maxVisible = 5;
 
-        if (totalPages <= maxVisible) {
-            for (let i = 1; i <= totalPages; i++) pages.push(i);
+        if (actualTotalPages <= maxVisible) {
+            for (let i = 1; i <= actualTotalPages; i++) pages.push(i);
         } else {
             if (currentPage <= 3) {
-                pages.push(1, 2, 3, '...', totalPages);
-            } else if (currentPage >= totalPages - 2) {
-                pages.push(1, '...', totalPages - 2, totalPages - 1, totalPages);
+                pages.push(1, 2, 3, '...', actualTotalPages);
+            } else if (currentPage >= actualTotalPages - 2) {
+                pages.push(1, '...', actualTotalPages - 2, actualTotalPages - 1, actualTotalPages);
             } else {
-                pages.push(1, '...', currentPage, '...', totalPages);
+                pages.push(1, '...', currentPage, '...', actualTotalPages);
             }
         }
         return pages;
@@ -297,7 +353,7 @@ const HistoryPage = () => {
             {/* Results Grid */}
             {!loading && !error && filteredAnalyses.length > 0 && (
                 <div className="history-grid">
-                    {filteredAnalyses.map((item) => {
+                    {paginatedAnalyses.map((item) => {
                         const ResultIcon = getResultIcon(item.result);
                         return (
                             <div key={item.id} className="history-card">
@@ -390,7 +446,7 @@ const HistoryPage = () => {
                     </div>
                     <button
                         className="pagination-btn"
-                        disabled={currentPage === totalPages}
+                        disabled={currentPage === actualTotalPages}
                         onClick={() => goToPage(currentPage + 1)}
                     >
                         Next

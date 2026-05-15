@@ -158,6 +158,13 @@ const analysisSchema = new mongoose.Schema({
         gradcamPath: String,
         limePath: String
     },
+    // Trust-Aware Fields (v1.1)
+    trustAware: {
+        trustScore: Number,
+        temporalVariance: Number,
+        temporalLabel: String,
+        confidenceLevel: String,
+    },
     // Metadata
     metadata: {
         processingTime: Number, // Total processing time in seconds

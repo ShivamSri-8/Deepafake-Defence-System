@@ -2,21 +2,23 @@
 Logger utility with colored output
 """
 import sys
+import io
 from loguru import logger
 
 
 def setup_logger(name: str = None):
     """Configure and return a logger instance"""
-    
+
     # Remove default handler
     logger.remove()
-    
-    # Add custom handler with formatting
+
+    # Add custom handler with formatting (use sys.stdout directly to avoid closed file issues)
     logger.add(
         sys.stdout,
         format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
         level="DEBUG",
-        colorize=True
+        colorize=True,
+        enqueue=False,
     )
     
     # Add file handler for errors

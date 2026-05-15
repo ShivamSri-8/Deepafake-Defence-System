@@ -1,14 +1,10 @@
 {
   "train": {
-    "fake": 0,
-    "real": 0
+    "real": 50000,
+    "fake": 50000
   },
-  "valid": {
-    "fake": 0,
-    "real": 0
-  },
-  "test": {
-    "fake": 0,
-    "real": 0
+  "val": {
+    "real": 10000,
+    "fake": 10000
   }
 }

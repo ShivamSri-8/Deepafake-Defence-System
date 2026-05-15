@@ -141,7 +141,7 @@ class AIEngineService {
      */
     simulateAnalysis(analysis) {
         const probability = Math.random() * 0.6 + 0.2; // 0.2 to 0.8
-        const isFake = probability >= 0.5;
+        const classification = probability >= 0.60 ? 'fake' : probability < 0.40 ? 'real' : 'uncertain';
 
         // Trust-aware fields
         const modelScores = [
@@ -155,7 +155,7 @@ class AIEngineService {
 
         return {
             result: {
-                classification: isFake ? 'LIKELY_FAKE' : 'LIKELY_AUTHENTIC',
+                classification: classification,
                 probability: probability,
                 confidence: {
                     lower: Math.max(0, probability - 0.1),
@@ -246,24 +246,53 @@ class AIEngineService {
     }
 
     /**
-     * Format AI Engine response to match our schema
+     * Format AI Engine response to match our schema.
+     *
+     * The AI engine returns a DetectionResponse:
+     * {
+     *   analysis_id, status, file_type, filename, timestamp,
+     *   result: DetectionResult {
+     *     is_fake, fake_probability, confidence,
+     *     confidence_interval: { lower, upper },
+     *     risk_level, model_predictions: [ { model_name, fake_probability, confidence, weight } ],
+     *     trust_score, temporal_variance, temporal_label, confidence_level,
+     *     notes: []
+     *   },
+     *   disclaimer
+     * }
      */
     formatResponse(data) {
+        // The core detection result lives under data.result
+        const det = data.result || {};
+
+        // Normalise classification to 'real' / 'fake' / 'uncertain'
+        const probability = det.fake_probability ?? 0.5;
+        let classification = 'uncertain';
+        if (probability >= 0.60) classification = 'fake';
+        else if (probability < 0.40) classification = 'real';
+
+        // model_predictions is an ARRAY of { model_name, fake_probability, confidence, weight }
+        const modelPredictions = {};
+        const rawPreds = Array.isArray(det.model_predictions) ? det.model_predictions : [];
+        rawPreds.forEach(pred => {
+            const key = this._normaliseModelKey(pred.model_name || '');
+            modelPredictions[key] = {
+                score: pred.fake_probability ?? 0,
+                weight: pred.weight ?? 0,
+                confidence: pred.confidence ?? 0,
+            };
+        });
+
         return {
             result: {
-                classification: data.classification,
-                probability: data.probability,
+                classification,
+                probability,
                 confidence: {
-                    lower: data.confidence_interval?.lower || data.probability - 0.05,
-                    upper: data.confidence_interval?.upper || data.probability + 0.05
+                    lower: det.confidence_interval?.lower ?? Math.max(0, probability - 0.05),
+                    upper: det.confidence_interval?.upper ?? Math.min(1, probability + 0.05),
                 }
             },
-            modelPredictions: {
-                xception: data.model_predictions?.xception || null,
-                efficientnet: data.model_predictions?.efficientnet || null,
-                cnnLstm: data.model_predictions?.cnn_lstm || null,
-                ensemble: data.model_predictions?.ensemble || null
-            },
+            modelPredictions,
             forensics: this.formatForensics(data.forensics),
             explanation: {
                 summary: data.explanation?.summary || '',
@@ -274,12 +303,27 @@ class AIEngineService {
             processingTime: data.processing_time || 0,
             aiEngineVersion: data.version || '1.0.0',
             modelsUsed: data.models_used || ['xception', 'efficientnet'],
-            // Trust-aware fields (forwarded from AI engine response)
-            trustScore: data.result?.trust_score ?? null,
-            temporalVariance: data.result?.temporal_variance ?? null,
-            temporalLabel: data.result?.temporal_label ?? null,
-            confidenceLevel: data.result?.confidence_level ?? null,
+            isSimulated: false,
+            // Trust-aware fields (forwarded from AI engine DetectionResult)
+            trustScore: det.trust_score ?? null,
+            temporalVariance: det.temporal_variance ?? null,
+            temporalLabel: det.temporal_label ?? null,
+            confidenceLevel: det.confidence_level ?? null,
         };
+    }
+
+    /**
+     * Normalise a model_name string into a camelCase key
+     */
+    _normaliseModelKey(name) {
+        const n = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (n.includes('cnn') && n.includes('lstm')) return 'cnnLstm';
+        if (n.includes('efficient')) return 'efficientnet';
+        if (n.includes('xception')) return 'xception';
+        if (n.includes('resnet')) return 'resnet50';
+        if (n.includes('ensemble')) return 'ensemble';
+        if (n.includes('frame')) return 'frameAnalysis';
+        return n;
     }
 
     /**

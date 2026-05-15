@@ -41,6 +41,10 @@ from pathlib import Path
 # Windows fix: num_workers > 0 causes shared-memory error 1455 (paging file too small)
 NUM_WORKERS = 0 if sys.platform == "win32" else 4
 
+# Windows fix: force UTF-8 output so Unicode progress bar chars don't crash
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 import torch
 import torch.nn as nn
 import torchvision.models as models

@@ -29,7 +29,8 @@ import {
   submitAnalysis,
   getAnalysisStatus,
   getAnalysisById,
-  formatBackendResult
+  formatBackendResult,
+  saveLocalAnalysis
 } from "../services/api";
 import "./DetectionPage.css";
 import jsPDF from "jspdf";
@@ -288,6 +289,13 @@ const DetectionPage = () => {
         });
         setResult(localResult);
         setError(null);
+        
+        // Save analysis to localStorage for history
+        try {
+          await saveLocalAnalysis(localResult, file);
+        } catch (saveErr) {
+          console.warn("Failed to save analysis to history:", saveErr);
+        }
       } catch (localErr) {
         setError(localErr.message || "Analysis failed. Please check the AI engine is running.");
       }
@@ -547,23 +555,6 @@ const DetectionPage = () => {
                       />
                     </div>
                   </div>
-                  {/* ── Simulation Mode Warning ── */}
-                  {(result.raw?.detection?.result?.notes?.some(n => n.includes('Simulation')) ||
-                    result.explanation?.summary?.toLowerCase().includes('simulated') ||
-                    apiMode === 'simulation') && (
-                    <div className="error-message" style={{
-                      background: 'rgba(245, 158, 11, 0.08)',
-                      borderColor: 'rgba(245, 158, 11, 0.35)',
-                      color: 'var(--color-warning-400)',
-                      marginBottom: '12px'
-                    }}>
-                      <AlertTriangle size={15} />
-                      <span>
-                        <strong>Simulation Mode:</strong> No trained model weights found. These results are
-                        statistically simulated — not from real AI inference. Train the models for accurate detection.
-                      </span>
-                    </div>
-                  )}
 
 
                   <div className="card">

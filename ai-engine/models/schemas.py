@@ -31,6 +31,7 @@ class ModelPrediction(BaseModel):
     fake_probability: float = Field(..., ge=0, le=1, description="Probability of being fake")
     confidence: float = Field(..., ge=0, le=1, description="Model confidence")
     weight: float = Field(..., ge=0, le=1, description="Weight in ensemble")
+    is_simulated: bool = Field(default=False, description="Whether this prediction is simulated")
 
 
 # === Detection Results ===

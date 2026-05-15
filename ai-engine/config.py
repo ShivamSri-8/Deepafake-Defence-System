@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     # ── Inference Backend ─────────────────────────────────────────────────────
     # Set USE_PYTORCH=True to use the new PyTorch models (recommended after training)
     # Set USE_PYTORCH=False to fall back to legacy TensorFlow/Keras models
-    USE_PYTORCH: bool = True
+    USE_PYTORCH: bool = False  # Using Keras for quick training
 
     # ── Upload Settings ───────────────────────────────────────────────────────
     UPLOAD_DIR: str = os.path.join(os.path.dirname(__file__), "uploads")

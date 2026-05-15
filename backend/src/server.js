@@ -57,10 +57,8 @@ const limiter = rateLimit({
 });
 app.use('/api', limiter);
 
-// Logging
-if (process.env.NODE_ENV === 'development') {
-    app.use(morgan(process.env.LOG_LEVEL || 'dev'));
-}
+// Logging — use 'combined' in production for full log entries, 'dev' locally
+app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : (process.env.LOG_LEVEL || 'dev')));
 
 // Body parsing middleware
 app.use(express.json({ limit: '50mb' }));
@@ -131,7 +129,7 @@ const server = app.listen(PORT, () => {
 ║   🛡️  EDDS Backend Server                                 ║
 ║   Ethical Deepfake Defence System                         ║
 ║                                                           ║
-║   Environment: ${process.env.NODE_ENV.padEnd(40)}║
+║   Environment: ${(process.env.NODE_ENV || 'development').padEnd(40)}║
 ║   Port: ${PORT.toString().padEnd(49)}║
 ║   API: http://localhost:${PORT}/api/v1                       ║
 ║                                                           ║

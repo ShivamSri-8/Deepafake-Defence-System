@@ -492,7 +492,7 @@ export function formatBackendResult(backendData) {
         );
     }
 
-    // Trust-aware fields (v1.1)
+    // Trust-aware fields (v1.1) — backend stores in trustAware sub-document
     const trustAware = backendData.trustAware || {};
 
     return {
@@ -509,13 +509,106 @@ export function formatBackendResult(backendData) {
             keyRegions,
         },
         processingTime: backendData.metadata?.processingTime ?? null,
-        // Trust-aware fields
-        trustScore: trustAware.trustScore ?? null,
-        temporalVariance: trustAware.temporalVariance ?? null,
-        temporalLabel: trustAware.temporalLabel ?? null,
-        confidenceLevel: trustAware.confidenceLevel ?? null,
+        // Trust-aware fields — check sub-object first, then top-level as fallback
+        trustScore: trustAware.trustScore ?? backendData.trustScore ?? null,
+        temporalVariance: trustAware.temporalVariance ?? backendData.temporalVariance ?? null,
+        temporalLabel: trustAware.temporalLabel ?? backendData.temporalLabel ?? null,
+        confidenceLevel: trustAware.confidenceLevel ?? backendData.confidenceLevel ?? null,
         raw: backendData,
     };
+}
+
+// ==================== LOCAL STORAGE CACHE ====================
+
+/**
+ * Save a local analysis result to localStorage
+ * @param {Object} analysis - Analysis result object
+ * @param {File} file - Original file object
+ * @returns {Promise<string>} Local ID for the analysis
+ */
+export async function saveLocalAnalysis(analysis, file) {
+    try {
+        const localId = `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        // Get file preview
+        let preview = null;
+        if (file && file.type.includes('image')) {
+            preview = await new Promise(resolve => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        const localAnalysis = {
+            id: localId,
+            name: file?.name || 'Unknown',
+            type: file?.type?.includes('video') ? 'video' : 'image',
+            result: analysis.classification,
+            confidence: Math.round(analysis.probability * 100),
+            date: new Date().toISOString().split('T')[0],
+            timestamp: new Date().toISOString(),
+            size: file?.size ? formatFileSize(file.size) : '0 B',
+            preview: preview,
+            analysis: analysis,
+            source: 'local' // Mark as locally analyzed (not from backend)
+        };
+
+        // Get existing analyses
+        const existing = JSON.parse(localStorage.getItem('edds_local_analyses') || '[]');
+        
+        // Add new analysis at the beginning (most recent first)
+        existing.unshift(localAnalysis);
+        
+        // Keep only last 50 analyses to avoid bloating localStorage
+        if (existing.length > 50) {
+            existing.pop();
+        }
+
+        // Save back to localStorage
+        localStorage.setItem('edds_local_analyses', JSON.stringify(existing));
+        
+        return localId;
+    } catch (error) {
+        console.error('Error saving local analysis:', error);
+        throw error;
+    }
+}
+
+/**
+ * Get all local analyses from localStorage
+ * @returns {Array} Array of local analyses
+ */
+export function getLocalAnalyses() {
+    try {
+        const analyses = JSON.parse(localStorage.getItem('edds_local_analyses') || '[]');
+        return analyses;
+    } catch (error) {
+        console.error('Error retrieving local analyses:', error);
+        return [];
+    }
+}
+
+/**
+ * Clear all local analyses from localStorage
+ */
+export function clearLocalAnalyses() {
+    try {
+        localStorage.removeItem('edds_local_analyses');
+    } catch (error) {
+        console.error('Error clearing local analyses:', error);
+    }
+}
+
+/**
+ * Helper to format file size
+ */
+function formatFileSize(bytes) {
+    if (!bytes || bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 }
 
 // Export URL constants for configuration
