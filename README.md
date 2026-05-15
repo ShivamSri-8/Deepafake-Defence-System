@@ -1,8 +1,13 @@
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/c90236f6-43be-423a-b346-0d76f68ad7da" />
+
+
+
+
 # Ethical Deepfake Defence System (EDDS)
 
 <div align="center">
 
-![EDDS Banner](docs/assets/banner.png)
+
 
 **A Research-Grade AI System for Deepfake Detection, Forensic Analysis, and Explainable AI**
 
