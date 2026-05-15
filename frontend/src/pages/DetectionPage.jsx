@@ -622,13 +622,18 @@ const DetectionPage = () => {
                               <span className="forensic-name">
                                 {FORENSIC_LABELS[key] || key}
                               </span>
-                              <span
-                                className={`forensic-status ${
-                                  data?.anomaly ? "anomaly" : "normal"
-                                }`}
-                              >
-                                {data?.anomaly ? "Anomaly" : "Normal"}
-                              </span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span className="forensic-score" style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+                                  {((data?.score ?? 0) * 100).toFixed(1)}%
+                                </span>
+                                <span
+                                  className={`forensic-status ${
+                                    data?.anomaly ? "anomaly" : "normal"
+                                  }`}
+                                >
+                                  {data?.anomaly ? "Anomaly" : "Normal"}
+                                </span>
+                              </div>
                             </div>
                             <div className="forensic-bar">
                               <div

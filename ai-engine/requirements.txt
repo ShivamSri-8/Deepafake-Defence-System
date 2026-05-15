@@ -6,13 +6,13 @@ pydantic==2.5.3
 pydantic-settings==2.1.0
 
 # Deep Learning
-tensorflow==2.15.0
-torch==2.1.2
-torchvision==0.16.2
+tensorflow==2.16.1
+torch==2.2.2
+torchvision==0.17.2
 
 # Computer Vision
 opencv-python==4.9.0.80
-mediapipe==0.10.9
+mediapipe==0.10.35
 Pillow==10.2.0
 
 # Scientific Computing
