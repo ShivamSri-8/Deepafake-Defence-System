@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Upload,
   FileVideo,
@@ -21,6 +22,7 @@ import {
   Shield,
   Gauge,
   Clock,
+  Terminal
 } from "lucide-react";
 
 import { 
@@ -61,42 +63,45 @@ const getResultLabel = (type) => {
   return "Inconclusive";
 };
 
-// SVG probability ring
-const ProbabilityRing = ({ probability, type }) => {
-  const radius = 36;
+// Premium Animated Trust Score Dial
+const TrustScoreDial = ({ probability, type }) => {
+  const radius = 42;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference - probability * circumference;
+  const strokeDashoffset = circumference - probability * circumference;
+  
+  // Choose color based on result classification
+  let colorVar = "var(--color-warning-400)";
+  let glowColor = "rgba(250, 204, 21, 0.4)";
+  if (type === "fake") {
+      colorVar = "var(--color-danger-400)";
+      glowColor = "rgba(239, 68, 68, 0.4)";
+  } else if (type === "real") {
+      colorVar = "var(--color-success-400)";
+      glowColor = "rgba(74, 222, 128, 0.4)";
+  }
 
   return (
-    <div className="probability-visual">
-      <svg className="probability-ring" viewBox="0 0 88 88">
-        {/* Track */}
+    <div className="trust-score-dial">
+      <svg viewBox="0 0 100 100" style={{ width: "100%", height: "100%", transform: "rotate(-90deg)", filter: `drop-shadow(0 0 8px ${glowColor})` }}>
         <circle
-          cx="44"
-          cy="44"
-          r={radius}
-          fill="none"
-          stroke="rgba(255,255,255,0.06)"
-          strokeWidth="4"
+          cx="50" cy="50" r={radius}
+          fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="6"
         />
-        {/* Fill */}
-        <circle
-          cx="44"
-          cy="44"
-          r={radius}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="4"
-          strokeLinecap="round"
+        <motion.circle
+          cx="50" cy="50" r={radius}
+          fill="none" stroke={colorVar} strokeWidth="6" strokeLinecap="round"
           strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          transform="rotate(-90 44 44)"
-          style={{ transition: "stroke-dashoffset 0.8s var(--ease-out)" }}
+          initial={{ strokeDashoffset: circumference }}
+          animate={{ strokeDashoffset }}
+          transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }} // Emil Design easeOut
         />
       </svg>
-      <span className="probability-value">
-        {(probability * 100).toFixed(0)}%
-      </span>
+      <div className="trust-score-center">
+        <span className="trust-score-value">
+          {(probability * 100).toFixed(0)}%
+        </span>
+        <span className="trust-score-label">TRUST</span>
+      </div>
     </div>
   );
 };
@@ -129,6 +134,9 @@ const DetectionPage = () => {
   const [error, setError] = useState(null);
   const [apiMode, setApiMode] = useState("checking");
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  
+  // Real-time console logs during scan
+  const [scanLogs, setScanLogs] = useState([]);
 
   useEffect(() => {
     const checkBackend = async () => {
@@ -142,6 +150,11 @@ const DetectionPage = () => {
     checkBackend();
   }, []);
 
+  const addLog = (message) => {
+    const timestamp = new Date().toLocaleTimeString();
+    setScanLogs((prev) => [...prev, `[${timestamp}] ${message}`].slice(-6)); // keep last 6 logs
+  };
+
   const onDrop = useCallback((acceptedFiles) => {
     const selectedFile = acceptedFiles[0];
     if (!selectedFile) return;
@@ -151,6 +164,7 @@ const DetectionPage = () => {
     setError(null);
     setProgress(0);
     setCurrentStage("");
+    setScanLogs([]);
 
     const reader = new FileReader();
     reader.onload = () => setPreview(reader.result);
@@ -174,9 +188,9 @@ const DetectionPage = () => {
     setProgress(0);
     setCurrentStage("");
     setError(null);
+    setScanLogs([]);
   };
 
-  // ── Download Report as PDF ────────────────────────────────────────────
   const downloadReport = async () => {
     const element = document.getElementById("report-section");
     if (!element) return;
@@ -200,11 +214,9 @@ const DetectionPage = () => {
       let position = 10;
       let heightLeft = imgHeight;
 
-      // First page
       pdf.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
       heightLeft -= (pageHeight - 20);
 
-      // Extra pages if report is longer than one A4
       while (heightLeft > 0) {
         position = -(pageHeight - 20) + 10;
         pdf.addPage();
@@ -226,18 +238,20 @@ const DetectionPage = () => {
     setProgress(5);
     setResult(null);
     setError(null);
+    setScanLogs([]);
+    
+    addLog("System initialized. Secure vault handshaking...");
     setCurrentStage("Uploading to secure vault...");
 
-    // ── Path A: Try backend (requires auth) ──────────────────────────────
     let backendSucceeded = false;
     try {
       const submission = await submitAnalysis(file);
       const analysisId = submission.data.analysisId;
 
       setProgress(15);
+      addLog("Payload encrypted. Initializing deep neural ensemble network...");
       setCurrentStage("Analysing with ensemble models...");
 
-      // Poll for completion
       let isDone = false;
       let pollCount = 0;
       const MAX_POLLS = 60;
@@ -251,6 +265,9 @@ const DetectionPage = () => {
 
         if (stages && stages.length > 0) {
           const current = stages[stages.length - 1];
+          const stageLabel = current.stage.replace(/_/g, ' ').toUpperCase();
+          
+          addLog(`Inference update: ${stageLabel}`);
           setCurrentStage(
             current.stage.replace(/_/g, ' ').charAt(0).toUpperCase() +
             current.stage.replace(/_/g, ' ').slice(1)
@@ -261,7 +278,7 @@ const DetectionPage = () => {
         if (status === 'completed') {
           isDone = true;
           const finalRes = await getAnalysisById(analysisId);
-          // Backend returns { data: { result, modelPredictions, forensics, explanation, ... } }
+          addLog("Compiling multi-model tensor matrices. Done.");
           setResult(formatBackendResult(finalRes.data));
           setProgress(100);
           setCurrentStage("Analysis Complete");
@@ -274,23 +291,27 @@ const DetectionPage = () => {
       if (!isDone) throw new Error("Analysis timed out.");
 
     } catch (backendErr) {
-      // Backend unavailable or user not logged in—fall through to direct AI engine
       console.warn("Backend path unavailable, using direct AI engine:", backendErr.message);
     }
 
-    // ── Path B: Direct AI engine (no auth needed) ────────────────────────
     if (!backendSucceeded) {
       try {
         setProgress(20);
+        addLog("Routing execution queue directly to local GPU inference...");
         setCurrentStage("Connecting to AI engine directly...");
+        
         const localResult = await performFullAnalysis(file, (stage, percent) => {
           setCurrentStage(stage);
           setProgress(percent);
+          if (percent % 20 === 0) {
+            addLog(`Inferring: ${stage} (${percent}%)`);
+          }
         });
+        
+        addLog("Local GPU compilation completed. Structuring forensics...");
         setResult(localResult);
         setError(null);
         
-        // Save analysis to localStorage for history
         try {
           await saveLocalAnalysis(localResult, file);
         } catch (saveErr) {
@@ -307,22 +328,37 @@ const DetectionPage = () => {
   const isVideo = file?.type?.includes("video");
   const ResultIcon = result ? getResultIcon(result.classification) : null;
 
+  // Framer variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+  };
+
+  const cardVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 100, damping: 15 } }
+  };
+
   return (
     <div className="page">
       <div className="container">
-        <div className="detection-page">
+        <motion.div 
+          className="detection-page"
+          initial="hidden"
+          animate="visible"
+          variants={containerVariants}
+        >
           {/* Page Header */}
-          <div className="page-header">
+          <motion.div className="page-header" variants={cardVariants}>
             <h1 className="page-title">Forensic Analysis Console</h1>
             <p className="page-subtitle">
               Upload an image or video for multi-model deepfake detection with explainable AI forensics.
             </p>
-          </div>
+          </motion.div>
 
           <div className="detection-grid">
             {/* ═══ LEFT PANEL — Upload & Controls ═══ */}
-            <div className="card upload-section">
-              {/* Card Header */}
+            <motion.div className="card upload-section" variants={cardVariants}>
               <div className="card-header-row">
                 <div>
                   <h2 className="card-title">Upload Media</h2>
@@ -331,46 +367,22 @@ const DetectionPage = () => {
                   </p>
                 </div>
 
-                <div
-                  className={`api-status ${apiMode}`}
-                  title={
-                    apiMode === "live"
-                      ? "Connected to live AI engine"
-                      : apiMode === "simulation"
-                      ? "Using simulated results — AI engine offline"
-                      : "Checking connection…"
-                  }
-                >
-                  {apiMode === "live" ? (
-                    <Wifi size={12} />
-                  ) : apiMode === "simulation" ? (
-                    <WifiOff size={12} />
-                  ) : (
-                    <Loader2 size={12} className="spin" />
-                  )}
-                  {apiMode === "live"
-                    ? "Live AI"
-                    : apiMode === "simulation"
-                    ? "Simulation"
-                    : "Checking…"}
+                <div className={`api-status ${apiMode}`} title={apiMode === "live" ? "Connected to live AI engine" : "Simulated"}>
+                  {apiMode === "live" ? <Wifi size={12} /> : <WifiOff size={12} />}
+                  {apiMode === "live" ? "Live AI" : "Simulation"}
                 </div>
               </div>
 
               {/* Dropzone or Preview */}
               {!file ? (
-                <div
-                  {...getRootProps()}
-                  className={`dropzone ${isDragActive ? "active" : ""}`}
-                >
+                <div {...getRootProps()} className={`dropzone ${isDragActive ? "active" : ""}`}>
                   <input {...getInputProps()} />
                   <div className="dropzone-content">
                     <div className="dropzone-icon">
                       <Upload size={28} />
                     </div>
                     <p className="dropzone-text">
-                      {isDragActive
-                        ? "Drop the file here…"
-                        : "Drag & drop or click to upload"}
+                      Drag & drop or click to upload
                     </p>
                     <p className="dropzone-hint">
                       IMAGE / VIDEO · MAX 100 MB
@@ -378,35 +390,38 @@ const DetectionPage = () => {
                   </div>
                 </div>
               ) : (
-                <div className="file-preview">
+                <div className="file-preview futuristic-view">
                   <div className="preview-media">
                     {isVideo ? (
-                      <video
-                        src={preview}
-                        controls
-                        className="preview-video"
-                      />
+                      <video src={preview} controls className="preview-video" />
                     ) : (
-                      <img
-                        src={preview}
-                        alt="Preview"
-                        className="preview-image"
-                      />
+                      <img src={preview} alt="Preview" className="preview-image" />
+                    )}
+
+                    {/* Laser Scanner animation during scan */}
+                    {isAnalyzing && (
+                      <div className="laser-scanner" />
+                    )}
+
+                    {/* Holographic HUD grid overlay when not yet analyzed */}
+                    {!result && (
+                      <div className="hud-overlay">
+                        <div className="corner tl" />
+                        <div className="corner tr" />
+                        <div className="corner bl" />
+                        <div className="corner br" />
+                        <div className="crosshairs" />
+                        <div className="coordinate-lines" />
+                      </div>
                     )}
                   </div>
                   <div className="preview-info">
                     <div className="preview-icon">
-                      {isVideo ? (
-                        <FileVideo size={16} />
-                      ) : (
-                        <FileImage size={16} />
-                      )}
+                      {isVideo ? <FileVideo size={16} /> : <FileImage size={16} />}
                     </div>
                     <div className="preview-details">
                       <span className="preview-name">{file.name}</span>
-                      <span className="preview-size">
-                        {formatBytes(file.size)}
-                      </span>
+                      <span className="preview-size">{formatBytes(file.size)}</span>
                     </div>
                     <button className="preview-remove" onClick={clearFile} aria-label="Remove file">
                       <X size={14} />
@@ -426,6 +441,21 @@ const DetectionPage = () => {
                 </div>
               )}
 
+              {/* Console logs output */}
+              {isAnalyzing && scanLogs.length > 0 && (
+                <div className="console-logs-container">
+                  <div className="console-logs-header">
+                    <Terminal size={12} style={{ color: "var(--color-cyan)" }} />
+                    <span>Inference Logs</span>
+                  </div>
+                  <div className="console-logs">
+                    {scanLogs.map((log, index) => (
+                      <div key={index} className="console-log-item">{log}</div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Analyse / Reset Buttons */}
               {file && !result && (
                 <button
@@ -438,7 +468,7 @@ const DetectionPage = () => {
                   {isAnalyzing ? (
                     <>
                       <Loader2 size={16} className="spin" />
-                      Analysing…
+                      Executing Inference Engine…
                     </>
                   ) : (
                     <>
@@ -450,11 +480,7 @@ const DetectionPage = () => {
               )}
 
               {result && (
-                <button
-                  className="btn btn-secondary"
-                  style={{ width: "100%" }}
-                  onClick={clearFile}
-                >
+                <button className="btn btn-secondary" style={{ width: "100%" }} onClick={clearFile}>
                   <RotateCcw size={15} />
                   Analyse Another File
                 </button>
@@ -465,20 +491,14 @@ const DetectionPage = () => {
                 <div className="analysis-progress">
                   <div className="progress-header">
                     <span className="progress-stage">{currentStage}</span>
-                    <span className="progress-percent">
-                      {Math.round(progress)}%
-                    </span>
+                    <span className="progress-percent">{Math.round(progress)}%</span>
                   </div>
                   <div className="progress-bar">
-                    <div
-                      className="progress-bar-fill"
-                      style={{ width: `${progress}%` }}
-                    />
+                    <div className="progress-bar-fill" style={{ width: `${progress}%` }} />
                   </div>
                 </div>
               )}
 
-              {/* Disclaimer */}
               <div className="disclaimer-card">
                 <Info size={16} style={{ color: "var(--color-warning-400)", flexShrink: 0 }} />
                 <div>
@@ -490,346 +510,251 @@ const DetectionPage = () => {
                   </p>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
             {/* ═══ RIGHT PANEL — Results ═══ */}
             <div className="results-section">
-              {/* Placeholder */}
-              {!result && !isAnalyzing && (
-                <div className="results-placeholder">
-                  <div className="placeholder-icon">
-                    <Scan size={32} />
-                  </div>
-                  <h3>Awaiting Submission</h3>
-                  <p>
-                    Upload a file and run the analysis to view forensic results
-                    here.
-                  </p>
-                </div>
-              )}
-
-              {/* Analysing state */}
-              {isAnalyzing && (
-                <div className="analyzing-state">
-                  <div className="analyzing-visual">
-                    <div className="analyzing-ring" />
-                    <div className="analyzing-ring" />
-                    <div className="analyzing-ring" />
-                    <Brain size={28} className="analyzing-icon" />
-                  </div>
-                  <h3>Processing…</h3>
-                  <p>{currentStage || "Initialising models"}</p>
-                </div>
-              )}
-
-              {/* Results */}
-              {result && (
-                <>
-                <div id="report-section" className="report-section">
-                <div className="results-content animate-slide-up">
-                  {/* ── Classification Banner ── */}
-                  <div className={`result-card ${getResultClass(result.classification)}`}>
-                    <div className="result-header">
-                      <div className="result-icon">
-                        {ResultIcon && <ResultIcon size={24} />}
-                      </div>
-                      <div>
-                        <span className="result-label">Classification</span>
-                        <div className="result-value">
-                          {getResultLabel(result.classification)}
-                        </div>
-                        {result.confidence && (
-                          <div className="probability-range">
-                            <span>
-                              CI: {(result.confidence.lower * 100).toFixed(1)}%
-                              –{(result.confidence.upper * 100).toFixed(1)}%
-                            </span>
-                          </div>
-                        )}
-                      </div>
+              <AnimatePresence mode="wait">
+                {/* Placeholder */}
+                {!result && !isAnalyzing && (
+                  <motion.div
+                    key="placeholder"
+                    className="results-placeholder"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    <div className="placeholder-icon">
+                      <Scan size={32} />
                     </div>
-                    <div className="result-probability">
-                      <ProbabilityRing
-                        probability={result.probability}
-                        type={result.classification}
-                      />
-                    </div>
-                  </div>
+                    <h3>Awaiting Submission</h3>
+                    <p>Upload a file and run the analysis to view forensic results here.</p>
+                  </motion.div>
+                )}
 
-
-                  <div className="card">
-                    <div className="result-section-title">
-                      <Brain size={12} />
-                      Model Predictions
+                {/* Analysing state */}
+                {isAnalyzing && (
+                  <motion.div
+                    key="analyzing"
+                    className="analyzing-state"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    <div className="analyzing-visual">
+                      <div className="analyzing-ring" />
+                      <div className="analyzing-ring" />
+                      <div className="analyzing-ring" />
+                      <Brain size={28} className="analyzing-icon" />
                     </div>
-                    <div className="model-predictions">
-                      {Object.entries(result.modelPredictions || {}).map(
-                        ([key, data]) =>
-                          data && (
-                            <div key={key} className="model-item">
-                              <div className="model-info">
-                                <span className="model-name">
-                                  {MODEL_LABELS[key]?.label || key}
-                                </span>
-                                {MODEL_LABELS[key]?.weight && (
-                                  <span className="model-weight">
-                                    weight {MODEL_LABELS[key].weight}
+                    <h3>Processing…</h3>
+                    <p>{currentStage || "Initialising models"}</p>
+                  </motion.div>
+                )}
+
+                {/* Results Output */}
+                {result && (
+                  <motion.div
+                    key="results"
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ type: "spring", stiffness: 80, damping: 12 }}
+                  >
+                    <div id="report-section" className="report-section">
+                      <div className="results-content">
+                        {/* ── Classification Banner ── */}
+                        <div className={`result-card ${getResultClass(result.classification)}`}>
+                          <div className="result-header">
+                            <div className="result-icon">
+                              {ResultIcon && <ResultIcon size={24} />}
+                            </div>
+                            <div>
+                              <span className="result-label">Classification</span>
+                              <div className="result-value">
+                                {getResultLabel(result.classification)}
+                              </div>
+                              {result.confidence && (
+                                <div className="probability-range">
+                                  <span>
+                                    CI: {(result.confidence.lower * 100).toFixed(1)}% – {(result.confidence.upper * 100).toFixed(1)}%
                                   </span>
-                                )}
-                              </div>
-                              <div className="model-bar">
-                                <div
-                                  className="model-bar-fill"
-                                  style={{
-                                    width: `${(data.score ?? 0) * 100}%`,
-                                  }}
-                                />
-                              </div>
-                              <span className="model-score">
-                                {((data.score ?? 0) * 100).toFixed(1)}%
-                              </span>
-                            </div>
-                          )
-                      )}
-                    </div>
-                  </div>
-
-                  {/* ── Forensic Analysis ── */}
-                  <div className="card">
-                    <div className="result-section-title">
-                      <Fingerprint size={12} />
-                      Forensic Analysis
-                    </div>
-                    <div className="forensic-grid">
-                      {Object.entries(result.forensics || {}).map(
-                        ([key, data]) => (
-                          <div
-                            key={key}
-                            className={`forensic-item ${
-                              data?.anomaly ? "anomaly" : ""
-                            }`}
-                          >
-                            <div className="forensic-header">
-                              <span className="forensic-name">
-                                {FORENSIC_LABELS[key] || key}
-                              </span>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <span className="forensic-score" style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
-                                  {((data?.score ?? 0) * 100).toFixed(1)}%
-                                </span>
-                                <span
-                                  className={`forensic-status ${
-                                    data?.anomaly ? "anomaly" : "normal"
-                                  }`}
-                                >
-                                  {data?.anomaly ? "Anomaly" : "Normal"}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="forensic-bar">
-                              <div
-                                className="forensic-bar-fill"
-                                style={{
-                                  width: `${(data?.score ?? 0) * 100}%`,
-                                }}
-                              />
+                                </div>
+                              )}
                             </div>
                           </div>
-                        )
-                      )}
-                    </div>
-                  </div>
+                          <div className="result-probability">
+                            <TrustScoreDial probability={result.probability} type={result.classification} />
+                          </div>
+                        </div>
 
-                  {/* ── AI Explanation ── */}
-                  {result.explanation && (
-                    <div className="card">
-                      <div className="result-section-title">
-                        <Activity size={12} />
-                        AI Explanation
-                      </div>
-                      {result.explanation.summary && (
-                        <p className="explanation-text">
-                          {result.explanation.summary}
-                        </p>
-                      )}
-                      {result.explanation.keyRegions?.length > 0 && (
-                        <div className="attention-regions">
-                          <span className="attention-label">
-                            Key Attention Regions
-                          </span>
-                          <div className="attention-list">
-                            {result.explanation.keyRegions.map((region, i) => (
-                              <div key={i} className="attention-item">
-                                <span>{region.name}</span>
-                                <span className="attention-score">
-                                  {(region.attention * 100).toFixed(0)}%
-                                </span>
+                        {/* Model Predictions */}
+                        <div className="card">
+                          <div className="result-section-title">
+                            <Brain size={12} />
+                            Model Predictions
+                          </div>
+                          <div className="model-predictions">
+                            {Object.entries(result.modelPredictions || {}).map(([key, data]) =>
+                              data && (
+                                <div key={key} className="model-item">
+                                  <div className="model-info">
+                                    <span className="model-name">{MODEL_LABELS[key]?.label || key}</span>
+                                    {MODEL_LABELS[key]?.weight && (
+                                      <span className="model-weight">weight {MODEL_LABELS[key].weight}</span>
+                                    )}
+                                  </div>
+                                  <div className="model-bar">
+                                    <motion.div
+                                      className="model-bar-fill"
+                                      initial={{ width: 0 }}
+                                      animate={{ width: `${(data.score ?? 0) * 100}%` }}
+                                      transition={{ duration: 1, ease: "easeOut" }}
+                                    />
+                                  </div>
+                                  <span className="model-score">{((data.score ?? 0) * 100).toFixed(1)}%</span>
+                                </div>
+                              )
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Forensic Analysis */}
+                        <div className="card">
+                          <div className="result-section-title">
+                            <Fingerprint size={12} />
+                            Forensic Analysis
+                          </div>
+                          <div className="forensic-grid">
+                            {Object.entries(result.forensics || {}).map(([key, data]) => (
+                              <div key={key} className={`forensic-item ${data?.anomaly ? "anomaly" : ""}`}>
+                                <div className="forensic-header">
+                                  <span className="forensic-name">{FORENSIC_LABELS[key] || key}</span>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span className="forensic-score" style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+                                      {((data?.score ?? 0) * 100).toFixed(1)}%
+                                    </span>
+                                    <span className={`forensic-status ${data?.anomaly ? "anomaly" : "normal"}`}>
+                                      {data?.anomaly ? "Anomaly" : "Normal"}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="forensic-bar">
+                                  <motion.div
+                                    className="forensic-bar-fill"
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${(data?.score ?? 0) * 100}%` }}
+                                    transition={{ duration: 1, ease: "easeOut" }}
+                                  />
+                                </div>
                               </div>
                             ))}
                           </div>
                         </div>
+
+                        {/* Explainability Grad-CAM Heatmap */}
+                        {result.raw?.explanation?.gradcam?.overlay_url && (
+                          <div className="card explainability-card">
+                            <div className="result-section-title">
+                              <Activity size={12} />
+                              AI Attention Map (Grad-CAM)
+                            </div>
+                            <div className="heatmap-viewport">
+                              <div>
+                                <p className="viewport-label">Original</p>
+                                {preview && <img src={preview} alt="Original" className="heatmap-preview-image" />}
+                              </div>
+                              <div className="heatmap-wrapper">
+                                <p className="viewport-label">Attention Heatmap</p>
+                                <img
+                                  src={`http://localhost:8000${result.raw.explanation.gradcam.overlay_url}`}
+                                  alt="Grad-CAM Heatmap"
+                                  className="heatmap-preview-image"
+                                  onError={(e) => { e.target.style.display = 'none'; }}
+                                />
+                                <div className="heatmap-hud">
+                                  <div className="hud-line-v" />
+                                  <div className="hud-line-h" />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Trust-Aware Intelligence Panel */}
+                        {(result.trustScore !== null || result.confidenceLevel) && (
+                          <div className="card trust-aware-panel">
+                            <div className="result-section-title">
+                              <Shield size={12} />
+                              Trust-Aware Intelligence
+                            </div>
+                            <div className="trust-grid">
+                              {result.trustScore !== null && (
+                                <div className="trust-item">
+                                  <div className="trust-item-header">
+                                    <Shield size={14} className="trust-icon trust-icon-shield" />
+                                    <span className="trust-item-label">Trust Score</span>
+                                  </div>
+                                  <div className="trust-score-display">
+                                    <span className="trust-score-value">{result.trustScore.toFixed(1)}</span>
+                                    <span className="trust-score-max">/ 100</span>
+                                  </div>
+                                  <div className="trust-bar">
+                                    <div
+                                      className={`trust-bar-fill ${
+                                        result.trustScore >= 75 ? 'high' :
+                                        result.trustScore >= 50 ? 'moderate' : 'low'
+                                      }`}
+                                      style={{ width: `${result.trustScore}%` }}
+                                    />
+                                  </div>
+                                  <span className="trust-hint">Composite of confidence, model agreement & forensics</span>
+                                </div>
+                              )}
+
+                              {result.confidenceLevel && (
+                                <div className="trust-item">
+                                  <div className="trust-item-header">
+                                    <Gauge size={14} className="trust-icon trust-icon-gauge" />
+                                    <span className="trust-item-label">Confidence Level</span>
+                                  </div>
+                                  <span className={`confidence-badge ${
+                                    result.confidenceLevel.includes('High') ? 'badge-high' :
+                                    result.confidenceLevel.includes('Moderate') ? 'badge-moderate' : 'badge-low'
+                                  }`}>
+                                    {result.confidenceLevel}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="processing-info">
+                          <Activity size={13} />
+                          Processed in {result.processingTime?.toFixed(2)}s · {apiMode === "live" ? "Live AI Engine" : "Simulated"}
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      id="download-report-btn"
+                      className="btn btn-download-report"
+                      onClick={downloadReport}
+                      disabled={isGeneratingPdf}
+                      style={{ width: "100%", marginTop: "12px" }}
+                    >
+                      {isGeneratingPdf ? (
+                        <><Loader2 size={15} className="spin" /> Generating PDF…</>
+                      ) : (
+                        <><Download size={15} /> Download Report</>
                       )}
-                    </div>
-                  )}
-
-                  {/* ── Grad-CAM Heatmap ── */}
-                  {result.raw?.explanation?.gradcam?.overlay_url && (
-                    <div className="card">
-                      <div className="result-section-title">
-                        <Activity size={12} />
-                        AI Attention Map (Grad-CAM)
-                      </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
-                        <div>
-                          <p style={{ margin: '0 0 6px', fontSize: '0.7rem', letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Original</p>
-                          {preview && (
-                            <img
-                              src={preview}
-                              alt="Original"
-                              style={{ width: '100%', borderRadius: '6px', objectFit: 'cover' }}
-                            />
-                          )}
-                        </div>
-                        <div>
-                          <p style={{ margin: '0 0 6px', fontSize: '0.7rem', letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Attention Heatmap</p>
-                          <img
-                            src={`http://localhost:8000${result.raw.explanation.gradcam.overlay_url}`}
-                            alt="Grad-CAM Heatmap"
-                            style={{ width: '100%', borderRadius: '6px', objectFit: 'cover' }}
-                            onError={(e) => { e.target.style.display = 'none'; }}
-                          />
-                        </div>
-                      </div>
-                      {result.raw.explanation.gradcam.focus_regions?.length > 0 && (
-                        <div style={{ marginTop: '10px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                          {result.raw.explanation.gradcam.focus_regions.map((r, i) => (
-                            <span key={i} className="attention-item" style={{ fontSize: '0.72rem', padding: '3px 10px', borderRadius: '20px', background: 'rgba(0,212,170,0.1)', color: 'var(--color-accent-400)', border: '1px solid rgba(0,212,170,0.2)' }}>
-                              {r.replace(/_/g, ' ')}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* ── Trust-Aware Intelligence Panel (v1.1) ── */}
-                  {(result.trustScore !== null || result.confidenceLevel) && (
-                    <div className="card trust-aware-panel">
-                      <div className="result-section-title">
-                        <Shield size={12} />
-                        Trust-Aware Intelligence
-                      </div>
-
-                      <div className="trust-grid">
-                        {/* Trust Score */}
-                        {result.trustScore !== null && (
-                          <div className="trust-item">
-                            <div className="trust-item-header">
-                              <Shield size={14} className="trust-icon trust-icon-shield" />
-                              <span className="trust-item-label">Trust Score</span>
-                            </div>
-                            <div className="trust-score-display">
-                              <span className="trust-score-value">{result.trustScore.toFixed(1)}</span>
-                              <span className="trust-score-max">/ 100</span>
-                            </div>
-                            <div className="trust-bar">
-                              <div
-                                className={`trust-bar-fill ${
-                                  result.trustScore >= 75 ? 'high' :
-                                  result.trustScore >= 50 ? 'moderate' : 'low'
-                                }`}
-                                style={{ width: `${result.trustScore}%` }}
-                              />
-                            </div>
-                            <span className="trust-hint">
-                              Composite of confidence, model agreement & forensics
-                            </span>
-                          </div>
-                        )}
-
-                        {/* Confidence Level */}
-                        {result.confidenceLevel && (
-                          <div className="trust-item">
-                            <div className="trust-item-header">
-                              <Gauge size={14} className="trust-icon trust-icon-gauge" />
-                              <span className="trust-item-label">Confidence Level</span>
-                            </div>
-                            <span className={`confidence-badge ${
-                              result.confidenceLevel.includes('High') ? 'badge-high' :
-                              result.confidenceLevel.includes('Moderate') ? 'badge-moderate' : 'badge-low'
-                            }`}>
-                              {result.confidenceLevel}
-                            </span>
-                          </div>
-                        )}
-
-                        {/* Temporal Status (video only) */}
-                        {result.temporalVariance !== null && result.temporalVariance !== undefined && (
-                          <div className="trust-item trust-item-temporal">
-                            <div className="trust-item-header">
-                              <Clock size={14} className="trust-icon trust-icon-clock" />
-                              <span className="trust-item-label">Temporal Consistency</span>
-                            </div>
-                            <div className="temporal-info">
-                              <span className={`temporal-badge ${
-                                result.temporalLabel === 'Stable' ? 'temporal-stable' :
-                                result.temporalLabel === 'Moderate Variation' ? 'temporal-moderate' : 'temporal-unstable'
-                              }`}>
-                                {result.temporalLabel}
-                              </span>
-                              <span className="temporal-variance">
-                                σ² = {result.temporalVariance.toFixed(4)}
-                              </span>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* ── Processing Info ── */}
-                  <div className="processing-info">
-                    <Activity size={13} />
-                    Processed in {result.processingTime?.toFixed(2)}s ·{" "}
-                    {apiMode === "live" ? "Live AI Engine" : "Simulated"}
-                  </div>
-
-                  {/* ── Report Disclaimer Footer ── */}
-                  <div className="report-disclaimer">
-                    <Info size={13} />
-                    <span>
-                      This is an AI-generated analysis and should not be
-                      considered as absolute proof. Results are probabilistic
-                      and must be verified by qualified experts.
-                    </span>
-                  </div>
-                </div>
-                </div>
-
-                {/* ── Download Report Button (outside captured area) ── */}
-                <button
-                  id="download-report-btn"
-                  className="btn btn-download-report"
-                  onClick={downloadReport}
-                  disabled={isGeneratingPdf}
-                >
-                  {isGeneratingPdf ? (
-                    <>
-                      <Loader2 size={15} className="spin" />
-                      Generating PDF…
-                    </>
-                  ) : (
-                    <>
-                      <Download size={15} />
-                      Download Report
-                    </>
-                  )}
-                </button>
-                </>
-              )}
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

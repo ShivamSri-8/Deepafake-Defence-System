@@ -1,4 +1,5 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
     Shield,
     Scan,
@@ -19,7 +20,6 @@ const navItems = [
     { path: '/detect',    icon: Scan,     label: 'Detection' },
     { path: '/history',   icon: History,  label: 'History'   },
     { path: '/analytics', icon: BarChart3,label: 'Analytics' },
-    { path: '/ethics',    icon: Scale,    label: 'Ethics'    },
     { path: '/about',     icon: Info,     label: 'About'     },
 ];
 
@@ -66,11 +66,28 @@ const Sidebar = ({ isOpen, onToggle }) => {
                                     to={item.path}
                                     className={`nav-link ${isActive ? 'active' : ''}`}
                                     title={!isOpen ? item.label : undefined}
+                                    style={{ position: 'relative' }}
                                 >
-                                    <span className="nav-icon">
+                                    {isActive && (
+                                        <motion.div
+                                            layoutId="active-nav-bg"
+                                            className="active-nav-bg"
+                                            transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                                            style={{
+                                                position: 'absolute',
+                                                inset: 0,
+                                                borderRadius: 'var(--radius-md)',
+                                                background: 'linear-gradient(135deg, rgba(6, 200, 255, 0.08), rgba(100, 60, 255, 0.06))',
+                                                border: '1px solid rgba(6, 200, 255, 0.2)',
+                                                boxShadow: '0 0 12px rgba(6, 200, 255, 0.1)',
+                                                zIndex: 0,
+                                            }}
+                                        />
+                                    )}
+                                    <span className="nav-icon" style={{ position: 'relative', zIndex: 1 }}>
                                         <Icon size={18} />
                                     </span>
-                                    <span className="nav-label">{item.label}</span>
+                                    <span className="nav-label" style={{ position: 'relative', zIndex: 1 }}>{item.label}</span>
                                 </NavLink>
                             </li>
                         );

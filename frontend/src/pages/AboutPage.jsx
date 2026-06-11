@@ -1,241 +1,173 @@
+import { motion } from 'framer-motion';
 import {
     Shield,
     Brain,
-    Eye,
-    Code2,
-    Database,
     Layers,
+    BarChart3,
+    AlertTriangle,
+    CheckCircle2,
+    ArrowDown,
     Github,
-    Mail,
-    BookOpen,
-    Award
+    Linkedin,
+    Mail
 } from 'lucide-react';
 import './AboutPage.css';
 
 const AboutPage = () => {
+    const capabilities = [
+        { icon: Brain, title: 'Deepfake Detection' },
+        { icon: Layers, title: 'Forensic Analysis' },
+        { icon: Shield, title: 'Explainable AI' },
+        { icon: BarChart3, title: 'Analytics Dashboard' }
+    ];
+
     const techStack = [
-        { name: 'React.js', category: 'Frontend', description: 'Modern UI with hooks and context' },
-        { name: 'Chart.js', category: 'Visualization', description: 'Interactive data visualization' },
-        { name: 'Node.js + Express', category: 'Backend', description: 'REST API server' },
-        { name: 'FastAPI', category: 'AI Service', description: 'Python ML inference API' },
-        { name: 'MongoDB', category: 'Database', description: 'Document-based storage' },
-        { name: 'TensorFlow/PyTorch', category: 'ML Framework', description: 'Deep learning models' },
+        { category: 'Frontend', tech: 'React.js, Tailwind CSS' },
+        { category: 'Backend', tech: 'Node.js, Express.js' },
+        { category: 'AI Engine', tech: 'FastAPI, Python' },
+        { category: 'Database', tech: 'MongoDB' },
+        { category: 'ML Frameworks', tech: 'TensorFlow, PyTorch' },
     ];
 
-    const models = [
-        {
-            name: 'Xception',
-            accuracy: '94.3%',
-            description: 'Depthwise separable convolutions for efficient image classification'
-        },
-        {
-            name: 'EfficientNet-B4',
-            accuracy: '95.1%',
-            description: 'Compound scaling for optimal depth, width, and resolution'
-        },
-        {
-            name: 'CNN + LSTM',
-            accuracy: '93.8%',
-            description: 'Spatial-temporal analysis for video deepfake detection'
-        },
-        {
-            name: 'Ensemble',
-            accuracy: '96.2%',
-            description: 'Weighted voting of all models for highest accuracy'
-        },
+    const workflowSteps = [
+        'Media Upload',
+        'Preprocessing',
+        'AI Detection',
+        'Forensic Analysis',
+        'Trust Score Generation',
+        'Explainable AI',
+        'Results'
     ];
 
-    const references = [
-        'Rössler, A., et al. (2019). "FaceForensics++: Learning to Detect Manipulated Facial Images."',
-        'Li, Y., et al. (2020). "Celeb-DF: A Large-scale Challenging Dataset for DeepFake Forensics."',
-        'Chollet, F. (2017). "Xception: Deep Learning with Depthwise Separable Convolutions."',
-        'Selvaraju, R., et al. (2017). "Grad-CAM: Visual Explanations from Deep Networks."',
-        'Tan, M., & Le, Q. (2019). "EfficientNet: Rethinking Model Scaling for CNNs."',
+    const keyFeatures = [
+        'Multi-Model Detection',
+        'Trust Score System',
+        'Explainable AI',
+        'Detection History',
+        'Analytics Dashboard',
+        'Forensic Insights'
     ];
+
+    // Animation variants
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+    };
+
+    const itemVariants = {
+        hidden: { y: 20, opacity: 0 },
+        visible: { y: 0, opacity: 1, transition: { type: 'spring', stiffness: 100, damping: 15 } }
+    };
 
     return (
-        <div className="about-page">
-            <div className="page-header">
-                <h1 className="page-title">About EDDS</h1>
-                <p className="page-subtitle">
-                    Learn about the Ethical Deepfake Defence System architecture and technology
-                </p>
-            </div>
-
-            {/* Hero Section */}
-            <section className="about-hero">
-                <div className="hero-icon">
-                    <Shield size={64} />
+        <motion.div 
+            className="about-page"
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+        >
+            {/* 1. About EDDS */}
+            <motion.section className="about-hero" variants={itemVariants}>
+                <div className="hero-icon-container">
+                    <Shield size={48} className="hero-shield-icon" />
                 </div>
-                <h2>Ethical Deepfake Defence System</h2>
-                <p>
-                    A research-grade AI platform for probabilistic deepfake detection, forensic analysis,
-                    and explainable AI. Designed for researchers, journalists, and security professionals
-                    with a focus on transparency and ethical AI principles.
+                <h1 className="about-title">About EDDS</h1>
+                <p className="about-description">
+                    Ethical Deepfake Defence System (EDDS) is an AI-powered platform designed to detect manipulated media through deepfake detection, forensic analysis, explainable AI, and trust scoring.
                 </p>
-                <div className="hero-badges">
-                    <span className="hero-badge">
-                        <Brain size={16} />
-                        Multi-Model Ensemble
-                    </span>
-                    <span className="hero-badge">
-                        <Eye size={16} />
-                        Explainable AI
-                    </span>
-                    <span className="hero-badge">
-                        <Shield size={16} />
-                        Ethical Framework
-                    </span>
-                </div>
-            </section>
+            </motion.section>
 
-            {/* Features */}
-            <section className="about-section">
+            {/* 2. Core Capabilities */}
+            <motion.section className="about-section" variants={itemVariants}>
                 <h2 className="section-title">Core Capabilities</h2>
-                <div className="features-grid">
-                    <div className="feature-card">
-                        <div className="feature-icon">
-                            <Brain size={28} />
+                <div className="capabilities-grid">
+                    {capabilities.map((cap, index) => (
+                        <div key={index} className="capability-card">
+                            <cap.icon size={24} className="capability-icon" />
+                            <h3>{cap.title}</h3>
                         </div>
-                        <h3>Multi-Model Detection</h3>
-                        <p>Ensemble of Xception, EfficientNet, and CNN+LSTM models for accurate classification with confidence intervals.</p>
-                    </div>
-                    <div className="feature-card">
-                        <div className="feature-icon">
-                            <Layers size={28} />
-                        </div>
-                        <h3>Forensic Analysis</h3>
-                        <p>Facial landmarks, blink patterns, lip sync, and frequency domain analysis for comprehensive examination.</p>
-                    </div>
-                    <div className="feature-card">
-                        <div className="feature-icon">
-                            <Eye size={28} />
-                        </div>
-                        <h3>Explainable AI</h3>
-                        <p>Grad-CAM heatmaps, LIME explanations, and human-readable summaries for transparent results.</p>
-                    </div>
-                    <div className="feature-card">
-                        <div className="feature-icon">
-                            <Award size={28} />
-                        </div>
-                        <h3>Analytics Dashboard</h3>
-                        <p>Detection history, trend analysis, confidence distributions, and model performance metrics.</p>
-                    </div>
+                    ))}
                 </div>
-            </section>
+            </motion.section>
 
-            {/* Model Performance */}
-            <section className="about-section">
-                <h2 className="section-title">Model Architecture</h2>
-                <div className="models-grid">
-                    {models.map((model, index) => (
-                        <div key={index} className="model-card">
-                            <div className="model-header">
-                                <h3>{model.name}</h3>
-                                <span className="model-accuracy">{model.accuracy}</span>
+            {/* 3. Technology Stack & 5. Key Features */}
+            <motion.div className="split-grid" variants={itemVariants}>
+                <section className="about-section">
+                    <h2 className="section-title">Technology Stack</h2>
+                    <div className="tech-stack-list">
+                        {techStack.map((item, index) => (
+                            <div key={index} className="tech-item">
+                                <span className="tech-category">{item.category}</span>
+                                <span className="tech-name">{item.tech}</span>
                             </div>
-                            <p>{model.description}</p>
+                        ))}
+                    </div>
+                </section>
+
+                <section className="about-section">
+                    <h2 className="section-title">Key Features</h2>
+                    <div className="features-list">
+                        {keyFeatures.map((feature, index) => (
+                            <div key={index} className="feature-item">
+                                <CheckCircle2 size={16} className="feature-check" />
+                                <span>{feature}</span>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            </motion.div>
+
+            {/* 4. Detection Workflow */}
+            <motion.section className="about-section" variants={itemVariants}>
+                <h2 className="section-title">Detection Workflow</h2>
+                <div className="workflow-diagram">
+                    {workflowSteps.map((step, index) => (
+                        <div key={index} className="workflow-step-container">
+                            <div className="workflow-step">
+                                <span className="step-number">{index + 1}</span>
+                                <span className="step-label">{step}</span>
+                            </div>
+                            {index < workflowSteps.length - 1 && (
+                                <div className="workflow-arrow">
+                                    <ArrowDown size={16} />
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>
-            </section>
+            </motion.section>
 
-            {/* Tech Stack */}
-            <section className="about-section">
-                <h2 className="section-title">Technology Stack</h2>
-                <div className="tech-grid">
-                    {techStack.map((tech, index) => (
-                        <div key={index} className="tech-card">
-                            <span className="tech-category">{tech.category}</span>
-                            <h4>{tech.name}</h4>
-                            <p>{tech.description}</p>
-                        </div>
-                    ))}
-                </div>
-            </section>
-
-            {/* Architecture Diagram */}
-            <section className="about-section">
-                <h2 className="section-title">System Architecture</h2>
-                <div className="architecture-diagram">
-                    <div className="arch-layer">
-                        <span className="arch-label">Client Layer</span>
-                        <div className="arch-boxes">
-                            <div className="arch-box">React Frontend</div>
-                            <div className="arch-box">Admin Panel</div>
-                        </div>
-                    </div>
-                    <div className="arch-arrow">↓</div>
-                    <div className="arch-layer">
-                        <span className="arch-label">API Layer</span>
-                        <div className="arch-boxes">
-                            <div className="arch-box">Express.js Gateway</div>
-                        </div>
-                    </div>
-                    <div className="arch-arrow">↓</div>
-                    <div className="arch-layer">
-                        <span className="arch-label">Services Layer</span>
-                        <div className="arch-boxes">
-                            <div className="arch-box">Media Service</div>
-                            <div className="arch-box">Detection Service</div>
-                            <div className="arch-box">Analytics Service</div>
-                        </div>
-                    </div>
-                    <div className="arch-arrow">↓</div>
-                    <div className="arch-layer">
-                        <span className="arch-label">AI/ML Layer</span>
-                        <div className="arch-boxes">
-                            <div className="arch-box highlight">FastAPI + Models</div>
-                            <div className="arch-box highlight">Forensics Engine</div>
-                            <div className="arch-box highlight">XAI Layer</div>
-                        </div>
-                    </div>
-                    <div className="arch-arrow">↓</div>
-                    <div className="arch-layer">
-                        <span className="arch-label">Data Layer</span>
-                        <div className="arch-boxes">
-                            <div className="arch-box">MongoDB</div>
-                            <div className="arch-box">File Storage</div>
-                        </div>
+            {/* 6. Responsible Usage */}
+            <motion.section className="about-section" variants={itemVariants}>
+                <div className="disclaimer-card">
+                    <AlertTriangle size={24} className="disclaimer-icon" />
+                    <div className="disclaimer-content">
+                        <h3>Responsible Usage</h3>
+                        <p>
+                            EDDS provides probabilistic assessments and should not be used as standalone evidence. Results should be reviewed alongside human expertise and additional verification methods.
+                        </p>
                     </div>
                 </div>
-            </section>
+            </motion.section>
 
-            {/* References */}
-            <section className="about-section">
-                <h2 className="section-title">Academic References</h2>
-                <div className="references-list">
-                    {references.map((ref, index) => (
-                        <div key={index} className="reference-item">
-                            <BookOpen size={16} />
-                            <span>{ref}</span>
-                        </div>
-                    ))}
+            {/* 7. Creator Signature Footer */}
+            <motion.section className="creator-footer" variants={itemVariants}>
+                <span className="creator-label">Built & Developed By</span>
+                <h3 className="creator-name">Shivam Srivastav</h3>
+                <div className="creator-links">
+                    <a href="https://www.linkedin.com/in/shivam-srivastav-dev/" target="_blank" rel="noopener noreferrer" className="creator-link" aria-label="LinkedIn">
+                        <Linkedin size={20} />
+                    </a>
+                    <a href="https://github.com/ShivamSri-8" target="_blank" rel="noopener noreferrer" className="creator-link" aria-label="GitHub">
+                        <Github size={20} />
+                    </a>
+                    <a href="mailto:shivamsrivastav9889@gmail.com" className="creator-link" aria-label="Email">
+                        <Mail size={20} />
+                    </a>
                 </div>
-            </section>
+            </motion.section>
 
-            {/* Footer */}
-            <section className="about-footer">
-                <div className="footer-content">
-                    <h3>Ethical Deepfake Defence System</h3>
-                    <p>Developed by Shivam Srivastav</p>
-                    <div className="footer-links">
-                        <a href="#" className="footer-link">
-                            <Github size={20} />
-                            <span>GitHub</span>
-                        </a>
-                        <a href="#" className="footer-link">
-                            <BookOpen size={20} />
-                            <span>Documentation</span>
-                        </a>
-                        <a href="#" className="footer-link">
-                            <Mail size={20} />
-                            <span>Contact</span>
-                        </a>
-                    </div>
-                </div>
-            </section>
-        </div>
+        </motion.div>
     );
 };
 

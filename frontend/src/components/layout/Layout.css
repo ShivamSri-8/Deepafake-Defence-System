@@ -1,10 +1,44 @@
 /* ═══════════════════════════════════════
-   Layout
+   Layout — Aurora Premium
    ═══════════════════════════════════════ */
 .layout {
     display: flex;
-    min-height: 100vh;
+    min-height: 100dvh;
 }
+
+.layout-main {
+    flex: 1;
+    margin-left: 240px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+    transition: margin-left var(--transition-base);
+}
+
+.layout-main.sidebar-collapsed {
+    margin-left: 64px;
+}
+
+.layout-content {
+    flex: 1;
+    padding: var(--space-6) var(--space-8);
+    max-width: 100%;
+}
+
+@media (max-width: 768px) {
+    .layout-main {
+        margin-left: 0;
+    }
+
+    .layout-main.sidebar-collapsed {
+        margin-left: 0;
+    }
+
+    .layout-content {
+        padding: var(--space-4) var(--space-5);
+    }
+}
+
 
 .layout-main {
     flex: 1;

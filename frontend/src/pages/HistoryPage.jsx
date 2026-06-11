@@ -261,6 +261,9 @@ const HistoryPage = () => {
                             </span>
                         )}
                     </p>
+                    <p className="confidence-scale-legend" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: 'var(--space-2)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                        Confidence scale: 0% = likely real → 100% = likely fake
+                    </p>
                 </div>
                 <div className="header-actions">
                     <button className="btn btn-secondary" onClick={fetchAnalyses}>
@@ -356,7 +359,7 @@ const HistoryPage = () => {
                     {paginatedAnalyses.map((item) => {
                         const ResultIcon = getResultIcon(item.result);
                         return (
-                            <div key={item.id} className="history-card">
+                            <div key={item.id} className="history-card" data-result={item.result}>
                                 <div className="history-card-header">
                                     <div className="file-type-icon">
                                         {item.type === 'video' ? <FileVideo size={20} /> : <FileImage size={20} />}

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Header from './Header';
 import Sidebar from './Sidebar';
+import BackgroundParticles from './BackgroundParticles';
 import './Layout.css';
 
 const Layout = ({ children }) => {
@@ -38,6 +39,7 @@ const Layout = ({ children }) => {
 
     return (
         <div className="layout">
+            <BackgroundParticles />
             {/* Mobile Backdrop */}
             {isMobile && sidebarOpen && (
                 <div

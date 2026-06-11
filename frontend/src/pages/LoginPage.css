@@ -1,10 +1,10 @@
 /* ============================================================
-   LoginPage.css — EDDS Auth Screen — Cinematic Dark Mode
+   LoginPage.css — EDDS Auth Screen — Aurora Premium
    ============================================================ */
 
-/* ── Root: full-screen ─────────────────────────────────────── */
+/* ── Root: full-screen ────────────────────────────────────── */
 .login-root {
-    min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -30,20 +30,20 @@
 }
 
 .login-bg-orb--1 {
-    width: 600px;
-    height: 600px;
-    top: -200px;
-    left: -150px;
-    background: radial-gradient(circle, rgba(6, 182, 212, 0.1) 0%, transparent 70%);
+    width: 700px;
+    height: 700px;
+    top: -250px;
+    left: -200px;
+    background: radial-gradient(circle, rgba(6, 200, 255, 0.1) 0%, rgba(100, 60, 255, 0.06) 50%, transparent 70%);
     animation-duration: 16s;
 }
 
 .login-bg-orb--2 {
-    width: 500px;
-    height: 500px;
-    bottom: -150px;
-    right: -100px;
-    background: radial-gradient(circle, rgba(236, 72, 153, 0.1) 0%, transparent 70%);
+    width: 600px;
+    height: 600px;
+    bottom: -200px;
+    right: -120px;
+    background: radial-gradient(circle, rgba(100, 60, 255, 0.1) 0%, rgba(6, 200, 255, 0.06) 50%, transparent 70%);
     animation-duration: 12s;
     animation-direction: alternate-reverse;
 }
@@ -69,16 +69,15 @@
     z-index: 1;
     width: 100%;
     max-width: 460px;
-    background: rgba(11, 11, 11, 0.9);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(8, 8, 22, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: var(--radius-2xl);
     padding: var(--space-10) var(--space-8);
-    backdrop-filter: blur(32px);
+    backdrop-filter: blur(40px) saturate(180%);
     box-shadow:
-        0 0 0 1px rgba(6, 182, 212, 0.05),
-        0 32px 80px rgba(0, 0, 0, 0.8),
-        0 0 120px rgba(6, 182, 212, 0.04),
-        0 0 120px rgba(236, 72, 153, 0.04);
+        0 0 0 1px rgba(6, 200, 255, 0.06),
+        0 32px 80px rgba(0, 0, 0, 0.85),
+        var(--glow-aurora);
 }
 
 /* Top gradient line */
@@ -89,7 +88,13 @@
     left: 0;
     right: 0;
     height: 1px;
-    background: var(--gradient-accent);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        var(--color-aurora-cyan) 30%,
+        var(--color-aurora-blue) 70%,
+        transparent
+    );
     border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
     opacity: 0.6;
 }
@@ -108,10 +113,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--gradient-accent);
+    background: linear-gradient(135deg, var(--color-aurora-cyan), var(--color-aurora-blue));
     border-radius: var(--radius-md);
-    color: #fff;
-    box-shadow: 0 0 24px rgba(6, 182, 212, 0.3);
+    color: var(--bg-void);
+    box-shadow: 0 0 24px rgba(6, 200, 255, 0.35);
     flex-shrink: 0;
 }
 
@@ -161,10 +166,10 @@
 }
 
 .login-tab.active {
-    background: rgba(255, 255, 255, 0.07);
+    background: rgba(6, 200, 255, 0.06);
     color: var(--text-primary);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 0 20px rgba(6, 182, 212, 0.1);
+    border: 1px solid rgba(6, 200, 255, 0.15);
+    box-shadow: 0 0 16px rgba(6, 200, 255, 0.08);
 }
 
 .login-tab:not(.active):hover {
@@ -269,9 +274,9 @@
 }
 
 .login-input:focus {
-    border-color: rgba(6, 182, 212, 0.5);
-    box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.08);
-    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(6, 200, 255, 0.45);
+    box-shadow: 0 0 0 3px rgba(6, 200, 255, 0.1), 0 0 10px rgba(6, 200, 255, 0.08);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .login-input::placeholder {
@@ -330,11 +335,11 @@
     cursor: pointer;
     font-family: var(--font-display);
     font-size: 0.85rem;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     padding: 0;
     transition: opacity var(--transition-fast);
-    background: var(--gradient-accent);
+    background: linear-gradient(135deg, var(--color-aurora-cyan), var(--color-aurora-blue));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;

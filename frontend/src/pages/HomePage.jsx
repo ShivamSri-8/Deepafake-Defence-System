@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, animate } from 'framer-motion';
 import {
     Shield,
     Scan,
@@ -8,6 +10,7 @@ import {
     Zap,
     FileCheck,
     TrendingUp,
+    TrendingDown,
     ArrowRight,
     FileImage,
     FileVideo,
@@ -19,6 +22,68 @@ import {
 } from 'lucide-react';
 import './HomePage.css';
 
+/* ═══════════════════════════════════════════════════════════════
+   SEMANTIC METRIC CONFIGURATION
+   Each metric defines whether higher or lower values are better.
+   Delta colors are derived automatically — never show positive
+   outcomes in red or negative outcomes in green.
+   ═══════════════════════════════════════════════════════════════ */
+const METRIC_CONFIG = {
+    'Total Analyses':          { higherIsBetter: true },
+    'Detection Accuracy':      { higherIsBetter: true },
+    'Avg. Processing':         { lowerIsBetter: true },
+    'This Week':               { higherIsBetter: true },
+    'False Positive Rate':     { lowerIsBetter: true },
+    'Trust Score Reliability':  { higherIsBetter: true },
+};
+
+function getSemanticDeltaColor(label, changeStr) {
+    const config = METRIC_CONFIG[label];
+    if (!config) return 'neutral';
+    const isIncrease = !changeStr.startsWith('-');
+    if (config.higherIsBetter) return isIncrease ? 'positive' : 'negative';
+    if (config.lowerIsBetter)  return isIncrease ? 'negative' : 'positive';
+    return 'neutral';
+}
+
+function getDeltaIcon(semanticClass) {
+    return semanticClass === 'negative' ? TrendingDown : TrendingUp;
+}
+
+/* ═══════════════════════════════════════════════════════════════ */
+
+const AnimatedNumber = ({ value }) => {
+    const numeric = parseFloat(value.replace(/,/g, '').replace(/%/g, '').replace(/s/g, ''));
+    const isPercent = value.includes('%');
+    const isSeconds = value.includes('s');
+    const hasComma = value.includes(',');
+
+    const [displayVal, setDisplayVal] = useState('0');
+
+    useEffect(() => {
+        const controls = animate(0, numeric, {
+            duration: 1.5,
+            ease: 'easeOut',
+            onUpdate: (latest) => {
+                let formatted = latest;
+                if (isSeconds) {
+                    formatted = latest.toFixed(1) + 's';
+                } else if (isPercent) {
+                    formatted = latest.toFixed(1) + '%';
+                } else if (hasComma) {
+                    formatted = Math.floor(latest).toLocaleString();
+                } else {
+                    formatted = Math.floor(latest).toString();
+                }
+                setDisplayVal(formatted);
+            }
+        });
+        return () => controls.stop();
+    }, [numeric, isPercent, isSeconds, hasComma]);
+
+    return <span>{displayVal}</span>;
+};
+
 const HomePage = () => {
     const stats = [
         {
@@ -26,28 +91,24 @@ const HomePage = () => {
             value: '1,542',
             label: 'Total Analyses',
             change: '+12.5%',
-            positive: true
         },
         {
             icon: Shield,
             value: '96.2%',
             label: 'Detection Accuracy',
             change: '+0.8%',
-            positive: true
         },
         {
             icon: Clock,
             value: '2.3s',
             label: 'Avg. Processing',
             change: '-0.4s',
-            positive: true
         },
         {
             icon: Activity,
             value: '378',
             label: 'This Week',
             change: '+18.2%',
-            positive: true
         }
     ];
 
@@ -108,59 +169,112 @@ const HomePage = () => {
         }
     };
 
+    // Framer Motion Animation Variants
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.1
+            }
+        }
+    };
+
+    const itemVariants = {
+        hidden: { y: 20, opacity: 0 },
+        visible: {
+            y: 0,
+            opacity: 1,
+            transition: {
+                type: 'spring',
+                stiffness: 100,
+                damping: 15
+            }
+        }
+    };
+
+    const hudVariants = {
+        hidden: { opacity: 0, y: 10, scale: 0.95 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            transition: { type: 'spring', stiffness: 120, damping: 18 }
+        }
+    };
+
     return (
-        <div className="home-page">
+        <motion.div
+            className="home-page"
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+        >
             {/* Hero Section */}
             <section className="hero-section">
-                <div className="hero-badge-container">
-                    <span className="hero-status-badge">
-                        <span className="status-dot" />
-                        System Operational
-                    </span>
-                </div>
-                <div className="hero-content">
-                    <h1 className="hero-title">
-                        Defend Against{' '}
-                        <span className="hero-title-accent">Deepfakes</span>{' '}
-                        with Precision AI
-                    </h1>
-                    <p className="hero-description">
-                        Research-grade detection combining multi-model ensemble analysis,
-                        forensic examination, and explainable AI. Built for analysts who
-                        demand transparency and accuracy.
-                    </p>
-                    <div className="hero-actions">
+                <div className="hero-content-centered">
+                    <motion.div className="hero-badge-container" variants={itemVariants}>
+                        <span className="hero-status-badge">
+                            <span className="status-dot animate-pulse" style={{ background: 'var(--color-aurora-cyan)', boxShadow: '0 0 8px var(--color-aurora-cyan)' }} />
+                            System Operational
+                        </span>
+                        <span className="hero-status-badge" style={{ marginLeft: '12px' }}>
+                            <span className="status-dot animate-pulse" style={{ background: '#8c3bff', boxShadow: '0 0 8px #8c3bff' }} />
+                            Active Ensemble: Online
+                        </span>
+                    </motion.div>
+                    <motion.h1 className="hero-title" variants={itemVariants}>
+                        Defend Against <br/>
+                        <span className="gradient-text-aurora">Deepfakes</span> <br/>
+                        with Precision
+                    </motion.h1>
+                    <motion.p className="hero-description" variants={itemVariants}>
+                        Secure your enterprise from the devastating impact of deepfakes
+                        and synthetic media. EDDS provides advanced AI-driven detection
+                        at scale for unparalleled trust and integrity.
+                    </motion.p>
+                    <motion.div className="hero-actions" variants={itemVariants}>
                         <Link to="/detect" className="btn btn-primary btn-lg">
                             <Scan size={18} />
-                            Begin Analysis
+                            Start Securing Now
                         </Link>
                         <Link to="/about" className="btn btn-secondary btn-lg">
-                            System Architecture
+                            Explore Platform
                             <ArrowRight size={16} />
                         </Link>
-                    </div>
+                    </motion.div>
                 </div>
             </section>
 
-            {/* Stats */}
-            <div className="stats-section">
+            {/* Stats — with semantic delta colors */}
+            <motion.div className="stats-section" variants={containerVariants}>
                 {stats.map((stat, index) => {
                     const Icon = stat.icon;
+                    const semanticClass = getSemanticDeltaColor(stat.label, stat.change);
+                    const DeltaIcon = getDeltaIcon(semanticClass);
                     return (
-                        <div key={index} className="stat-card">
+                        <motion.div 
+                            key={index} 
+                            className="stat-card" 
+                            variants={itemVariants}
+                            whileHover={{ y: -5, borderColor: 'rgba(6, 200, 255, 0.35)', boxShadow: '0 10px 30px -15px rgba(6, 200, 255, 0.15)' }}
+                            style={{ cursor: 'default' }}
+                        >
                             <div className="stat-icon">
-                                <Icon size={18} />
+                                <Icon size={20} />
                             </div>
-                            <span className="stat-value">{stat.value}</span>
+                            <span className="stat-value">
+                                <AnimatedNumber value={stat.value} />
+                            </span>
                             <span className="stat-label">{stat.label}</span>
-                            <span className={`stat-change ${stat.positive ? 'positive' : 'negative'}`}>
-                                <TrendingUp size={12} />
+                            <span className={`stat-change ${semanticClass}`}>
+                                <DeltaIcon size={12} />
                                 {stat.change}
                             </span>
-                        </div>
+                        </motion.div>
                     );
                 })}
-            </div>
+            </motion.div>
 
             {/* Features */}
             <section className="features-section">
@@ -168,20 +282,25 @@ const HomePage = () => {
                     <h2>Core Capabilities</h2>
                     <p>Detection, analysis, and transparency — built for professional workflows.</p>
                 </div>
-                <div className="features-grid">
+                <motion.div className="features-grid bento-layout" variants={containerVariants}>
                     {features.map((feature, index) => {
                         const Icon = feature.icon;
                         return (
-                            <div key={index} className="feature-card">
+                            <motion.div 
+                                key={index} 
+                                className={`feature-card bento-item-${index + 1}`}
+                                variants={itemVariants}
+                                whileHover={{ y: -4, borderColor: 'rgba(6, 200, 255, 0.25)', boxShadow: '0 15px 35px -10px rgba(0,0,0,0.5)' }}
+                            >
                                 <div className="feature-icon">
                                     <Icon size={22} />
                                 </div>
                                 <h3>{feature.title}</h3>
                                 <p>{feature.description}</p>
-                            </div>
+                            </motion.div>
                         );
                     })}
-                </div>
+                </motion.div>
             </section>
 
             {/* Recent Analyses */}
@@ -237,15 +356,15 @@ const HomePage = () => {
             </section>
 
             {/* CTA */}
-            <section className="cta-section">
-                <h2>Ready to Analyze?</h2>
+            <motion.section className="cta-section" variants={itemVariants}>
+                <h2>Ready to <span className="gradient-text-static">Analyze</span>?</h2>
                 <p>Upload an image or video for comprehensive deepfake detection with full forensic analysis.</p>
                 <Link to="/detect" className="btn btn-primary btn-lg">
                     <Scan size={18} />
                     Start Detection
                 </Link>
-            </section>
-        </div>
+            </motion.section>
+        </motion.div>
     );
 };
 

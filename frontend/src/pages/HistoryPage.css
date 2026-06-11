@@ -132,11 +132,30 @@
     border-radius: var(--radius-lg);
     padding: var(--space-5);
     backdrop-filter: blur(8px);
-    transition: border-color var(--transition-base), transform var(--transition-base);
+    transition: border-color var(--transition-base), transform var(--transition-base), background-color var(--transition-base);
 }
 
-.history-card:hover {
-    border-color: rgba(255, 255, 255, 0.15);
+.history-card[data-result="real"] {
+    background: rgba(74, 222, 128, 0.04);
+}
+.history-card[data-result="real"]:hover {
+    border-color: rgba(74, 222, 128, 0.2);
+    transform: translateY(-2px);
+}
+
+.history-card[data-result="fake"] {
+    background: rgba(248, 113, 113, 0.04);
+}
+.history-card[data-result="fake"]:hover {
+    border-color: rgba(248, 113, 113, 0.2);
+    transform: translateY(-2px);
+}
+
+.history-card[data-result="uncertain"] {
+    background: rgba(250, 204, 21, 0.04);
+}
+.history-card[data-result="uncertain"]:hover {
+    border-color: rgba(250, 204, 21, 0.2);
     transform: translateY(-2px);
 }
 
