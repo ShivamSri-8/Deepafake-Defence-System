@@ -29,8 +29,8 @@ class AIEngineService {
     async healthCheck() {
         try {
             const response = await this.client.get('/health');
-            this.simulationMode = false;
-            return response.data.status === 'healthy';
+            this.simulationMode = !response.data.models_loaded;
+            return response.data.status === 'ok' || response.data.status === 'healthy';
         } catch (error) {
             console.warn('AI Engine not available, using simulation mode:', error.message);
             this.simulationMode = true;
@@ -124,6 +124,7 @@ class AIEngineService {
 
         const formData = new FormData();
         formData.append('file', fs.createReadStream(filePath));
+        formData.append('include_lime', 'false'); // Disable LIME by default (too slow on CPU)
 
         try {
             const response = await this.client.post('/api/v1/explain', formData, {

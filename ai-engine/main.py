@@ -25,17 +25,13 @@ async def lifespan(app: FastAPI):
     logger.info(f"📤 Uploads directory: {settings.UPLOAD_DIR}")
     
     # Check if models exist
-    models_exist = all([
-        os.path.exists(settings.XCEPTION_MODEL_PATH),
-        os.path.exists(settings.EFFICIENTNET_MODEL_PATH),
-        os.path.exists(settings.LSTM_MODEL_PATH)
-    ])
+    model_exists = os.path.exists(settings.MODEL_PATH)
     
-    if not models_exist:
-        logger.warning("⚠️ Pre-trained models not found. Running in simulation mode.")
-        logger.info("💡 To enable real detection, place model weights in: " + settings.MODELS_DIR)
+    if not model_exists:
+        logger.error(f"❌ CRITICAL: Production model not found at {settings.MODEL_PATH}. Server will fail to serve inference.")
+        logger.info("💡 Place the efficientnet_deepfake.pt weights in the models/weights directory.")
     else:
-        logger.info("✅ All pre-trained models loaded successfully")
+        logger.info("✅ Production PyTorch model verified.")
     
     yield
     

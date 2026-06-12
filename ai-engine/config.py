@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     PORT: int = 8000
 
     # CORS Settings
-    ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:5173,http://localhost:8080"
+    ALLOWED_ORIGINS: str = "*"
 
     @property
     def allowed_origins_list(self) -> List[str]:
@@ -27,19 +27,11 @@ class Settings(BaseSettings):
 
     # ── Model Paths ──────────────────────────────────────────────────────────
     MODELS_DIR: str = os.path.join(os.path.dirname(__file__), "models", "weights")
-
-    # PyTorch weights (.pt) — produced by training/train_pytorch.py
-    XCEPTION_MODEL_PATH: str    = os.path.join(MODELS_DIR, "xception_deepfake.pt")
-    EFFICIENTNET_MODEL_PATH: str = os.path.join(MODELS_DIR, "efficientnet_deepfake.pt")
-    RESNET50_MODEL_PATH: str    = os.path.join(MODELS_DIR, "resnet50_deepfake.pt")
-
-    # Legacy Keras / LSTM path (kept for backwards compat, not used when USE_PYTORCH=True)
-    LSTM_MODEL_PATH: str = os.path.join(MODELS_DIR, "cnn_lstm_deepfake.h5")
+    MODEL_PATH: str = os.path.join(MODELS_DIR, "efficientnet_deepfake.pt")
 
     # ── Inference Backend ─────────────────────────────────────────────────────
-    # Set USE_PYTORCH=True to use the new PyTorch models (recommended after training)
-    # Set USE_PYTORCH=False to fall back to legacy TensorFlow/Keras models
-    USE_PYTORCH: bool = False  # Using Keras for quick training
+    # Enforcing PyTorch mode for production. TensorFlow is removed.
+    USE_PYTORCH: bool = True
 
     # ── Upload Settings ───────────────────────────────────────────────────────
     UPLOAD_DIR: str = os.path.join(os.path.dirname(__file__), "uploads")
@@ -63,10 +55,7 @@ class Settings(BaseSettings):
     HIGH_CONFIDENCE_THRESHOLD: float = 0.85
     LOW_CONFIDENCE_THRESHOLD: float = 0.40
 
-    # ── Ensemble Weights (must sum to 1.0) ────────────────────────────────────
-    XCEPTION_WEIGHT: float     = 0.40
-    EFFICIENTNET_WEIGHT: float = 0.35
-    RESNET50_WEIGHT: float     = 0.25
+    # ── Classification Thresholds (per improvement plan) ─────────────────────
 
     # ── Forensics Settings ────────────────────────────────────────────────────
     FACE_DETECTION_CONFIDENCE: float = 0.5
@@ -74,7 +63,7 @@ class Settings(BaseSettings):
     LIP_SYNC_WINDOW: int = 5
 
     # ── XAI Settings ──────────────────────────────────────────────────────────
-    GRADCAM_LAYER: str = "block14_sepconv2_act"  # Xception (TF). Unused in PyTorch mode.
+    GRADCAM_LAYER: str = "features.7"  # PyTorch EfficientNet target layer
     LIME_NUM_SAMPLES: int = 1000
     LIME_NUM_FEATURES: int = 10
 

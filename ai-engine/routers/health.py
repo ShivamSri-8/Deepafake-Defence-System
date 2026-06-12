@@ -12,11 +12,19 @@ router = APIRouter()
 
 @router.get("/health")
 async def health_check():
-    """Basic health check endpoint"""
+    """Basic health check endpoint returning model status"""
+    try:
+        from routers.detection import detector
+        models_loaded = getattr(detector, 'models_loaded', False)
+    except ImportError:
+        models_loaded = False
+        
     return {
-        "status": "healthy",
-        "timestamp": datetime.utcnow().isoformat(),
-        "service": "EDDS AI Engine"
+        "status": "ok",
+        "models_loaded": models_loaded,
+        "framework": "pytorch",
+        "active_models": ["EfficientNet-B4"] if models_loaded else [],
+        "inference_ready": models_loaded
     }
 
 
