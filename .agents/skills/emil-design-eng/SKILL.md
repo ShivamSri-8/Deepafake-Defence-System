@@ -153,3 +153,4 @@ Before shipping any UI with animation/interaction:
 - [ ] Do exit animations run faster than entrances?
 - [ ] Are stagger delays tight (30–60ms)?
 - [ ] Does motion feel purposeful, not decorative?
+

@@ -1,5 +1,6 @@
 const Analysis = require('../models/Analysis');
 const User = require('../models/User');
+const mongoose = require('mongoose');
 const { getMediaType, deleteFile } = require('../middleware/upload');
 const aiEngineService = require('../services/aiEngine.service');
 const {
@@ -7,6 +8,16 @@ const {
     computeTrustScore,
     computeConfidenceLevel,
 } = require('../utils/trustScore');
+
+// Helper: build a safe $or filter that includes _id only when the
+// param looks like a valid 24-char hex Mongo ObjectId.
+function buildIdFilter(paramId, userId) {
+    const conditions = [{ analysisId: paramId }];
+    if (mongoose.Types.ObjectId.isValid(paramId) && /^[a-f\d]{24}$/i.test(paramId)) {
+        conditions.push({ _id: paramId });
+    }
+    return { $or: conditions, user: userId };
+}
 
 // @desc    Submit media for analysis
 // @route   POST /api/v1/detect
@@ -75,13 +86,7 @@ exports.submitAnalysis = async (req, res, next) => {
 // @access  Private
 exports.getAnalysisResult = async (req, res, next) => {
     try {
-        const analysis = await Analysis.findOne({
-            $or: [
-                { analysisId: req.params.id },
-                { _id: req.params.id }
-            ],
-            user: req.user.id
-        });
+        const analysis = await Analysis.findOne(buildIdFilter(req.params.id, req.user.id));
 
         if (!analysis) {
             return res.status(404).json({
@@ -132,13 +137,8 @@ exports.getAnalysisResult = async (req, res, next) => {
 // @access  Private
 exports.getAnalysisStatus = async (req, res, next) => {
     try {
-        const analysis = await Analysis.findOne({
-            $or: [
-                { analysisId: req.params.id },
-                { _id: req.params.id }
-            ],
-            user: req.user.id
-        }).select('analysisId status processingStages startedAt');
+        const analysis = await Analysis.findOne(buildIdFilter(req.params.id, req.user.id))
+            .select('analysisId status processingStages startedAt');
 
         if (!analysis) {
             return res.status(404).json({

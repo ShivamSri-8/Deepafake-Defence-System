@@ -64,7 +64,7 @@ class Settings(BaseSettings):
 
     # ── XAI Settings ──────────────────────────────────────────────────────────
     GRADCAM_LAYER: str = "features.7"  # PyTorch EfficientNet target layer
-    LIME_NUM_SAMPLES: int = 1000
+    LIME_NUM_SAMPLES: int = 100
     LIME_NUM_FEATURES: int = 10
 
     class Config:
