@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
     try {
+        console.log('URI EXISTS:', !!process.env.MONGODB_URI);
         const conn = await mongoose.connect(process.env.MONGODB_URI, {
             // Modern mongoose doesn't need these options, but keeping for compatibility
         });
@@ -22,11 +23,9 @@ const connectDB = async () => {
         });
 
     } catch (error) {
-        console.error(`Error connecting to MongoDB: ${error.message}`);
-        // Exit process with failure in production
-        if (process.env.NODE_ENV === 'production') {
-            process.exit(1);
-        }
+        console.error('MongoDB connection failed');
+        console.error(error);
+        throw error;
     }
 };
 
