@@ -19,6 +19,9 @@ const userRoutes = require('./routes/user.routes');
 
 const app = express();
 
+console.log("VERCEL:", process.env.VERCEL);
+console.log("MONGODB_URI FOUND:", !!process.env.MONGODB_URI);
+
 // Connect to MongoDB
 connectDB();
 
