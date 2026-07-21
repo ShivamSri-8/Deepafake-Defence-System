@@ -4,7 +4,10 @@ const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
 
 // Ensure upload directory exists
-const uploadDir = process.env.UPLOAD_DIR || './uploads';
+const uploadDir = process.env.VERCEL
+    ? '/tmp/uploads'
+    : (process.env.UPLOAD_DIR || './uploads');
+
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }

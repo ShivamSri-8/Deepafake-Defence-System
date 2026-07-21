@@ -65,7 +65,9 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Static files for uploads
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+if (!process.env.VERCEL) {
+    app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+}
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -122,25 +124,21 @@ app.use(errorHandler);
 // Start server
 const PORT = process.env.PORT || 8080;
 
-const server = app.listen(PORT, () => {
-    console.log(`
-╔═══════════════════════════════════════════════════════════╗
-║                                                           ║
-║   🛡️  EDDS Backend Server                                 ║
-║   Ethical Deepfake Defence System                         ║
-║                                                           ║
-║   Environment: ${(process.env.NODE_ENV || 'development').padEnd(40)}║
-║   Port: ${PORT.toString().padEnd(49)}║
-║   API: http://localhost:${PORT}/api/v1                       ║
-║                                                           ║
-╚═══════════════════════════════════════════════════════════╝
-  `);
-});
+let server;
+
+if (!process.env.VERCEL) {
+    server = app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+}
 
 // Handle unhandled promise rejections
-process.on('unhandledRejection', (err, promise) => {
-    console.error(`Error: ${err.message}`);
-    server.close(() => process.exit(1));
+process.on('unhandledRejection', (err) => {
+    console.error(err);
+
+    if (server) {
+        server.close(() => process.exit(1));
+    }
 });
 
 module.exports = app;
